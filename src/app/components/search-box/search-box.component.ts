@@ -13,13 +13,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class SearchBoxComponent {
   searchTerm = ""
   lastSearchTerm = ""
+  placeholder = "Enter any title..."
   mode: 'home' | 'search' = 'home';
   isPromptUpdated = false
   isLoading = false;
 
   constructor(private movieService: MovieService, private route: ActivatedRoute, private router: Router) { }
 
-  performSearch(prompt: string) {
+  performSearch(prompt: string, page: number = 1) {
     if (prompt !== "" && prompt !== this.lastSearchTerm) {
       this.isLoading = true;
       this.lastSearchTerm = prompt
@@ -27,27 +28,25 @@ export class SearchBoxComponent {
       // change the query
       this.router.navigate(['/search'], { queryParams: { query: prompt } });
       try {
-        this.movieService.searchMovies(prompt);
+        this.movieService.searchMovies(prompt, page);
       } catch (error) {
         console.error('Error during search:', error);
       } finally {
         this.isLoading = false;
-        console.log("loaded");
       }
     }
   }
 
   ngOnInit() {
-    this.route.data.subscribe(data => {
-      this.mode = data['mode'];
-    });
-
-    // initialize searchTerm from query params if present and perform search
+    // Handling navigation to different pages via query params
     this.route.queryParams.subscribe(params => {
-      if (params['query'] && params['query'] !== this.lastSearchTerm) {
-        this.searchTerm = params['query'];
-        this.isPromptUpdated = true;
-        this.performSearch(this.searchTerm);
+      const query = params['query'];
+      const page = params['page'] ? parseInt(params['page'], 10) : 1;
+
+      if (query) {
+        // Updating the searchTerm state for the ui
+        this.searchTerm = query;
+        this.performSearch(query, page);
       }
     });
   }
@@ -55,6 +54,13 @@ export class SearchBoxComponent {
   handleInput(e: any) {
     this.searchTerm = e.target.value;
     this.isPromptUpdated = true;
+  }
+
+  handleFocus() {
+    this.placeholder = ""
+  }
+  handleFocusOut() {
+    this.placeholder = "Enter any title..."
   }
 
   async handleSubmit(event: any) {

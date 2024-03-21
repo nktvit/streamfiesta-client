@@ -1,7 +1,9 @@
-<main class="bg-slate-100 min-h-screen flex flex-col">
-    <div class="container lg:max-w-3xl mx-auto my-6">
-        <app-search-box></app-search-box>
+<main class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+    <app-navbar [showSearchBox]="true"></app-navbar>
+    <div class="container max-w-5xl mx-auto my-6">
         <app-movies-grid></app-movies-grid>
+        <app-pagination [totalResults]="totalResults" (pageChanged)="onPageChange($event)"></app-pagination>
+
     </div>
 
 </main>

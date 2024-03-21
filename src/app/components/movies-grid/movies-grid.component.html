@@ -1,11 +1,13 @@
-<div *ngIf="movies.length > 0" class="px-8 py-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-    <div *ngFor="let movie of movies" class="group relative">
-      <img src="{{movie.Poster}}" alt="{{movie.Title}}" class="h-auto max-w-full rounded-lg object-cover transition-all duration-300 ease-in-out group-hover:opacity-75">
-      <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out">
-        <p class="text-white sm:text-lg md:text-sm font-semibold">{{movie.Title}}</p>
-        <p class="text-gray-300 text-sm">{{movie.Year}}</p>
-      </div>
-      <a href="#" class="absolute inset-0 z-10"></a>
+<div *ngIf="movies.length > 0" class="px-8 py-6 mb-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+    <div *ngFor="let movie of movies"
+        class="group relative transition-transform duration-300 ease-in-out hover:scale-105">
+        <img [src]="movie.Poster !== 'N/A' && movie.Poster ? movie.Poster : 'https://placehold.co/300x420@2x?text=Image is not available'" alt="{{movie.Title}}" 
+            class="h-full w-full rounded-lg object-cover transition-all duration-300 ease-in-out group-hover:opacity-90">
+        <div
+            class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out">
+            <p class="text-white text-lg lg:text-sm font-semibold">{{movie.Title}}</p>
+            <p class="text-gray-300 text-sm">{{movie.Year}}</p>
+        </div>
+        <a [routerLink]="['/movie', movie.imdbID]" class="absolute inset-0 z-10"></a>
     </div>
-  </div>
-  
+</div>

@@ -1,16 +1,20 @@
 import { NgForOf, NgIf } from '@angular/common';
-import { MovieService } from './../../services/movie.service';
+import { MovieService } from '../../services/movie.service';
 import { Component, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { PaginationComponent } from '../pagination/pagination.component';
 
 @Component({
   selector: 'app-movies-grid',
   standalone: true,
-  imports: [NgIf, NgForOf],
+  imports: [NgIf, NgForOf, RouterLink, PaginationComponent],
   templateUrl: './movies-grid.component.html',
   styleUrl: './movies-grid.component.css'
 })
 export class MoviesGridComponent implements OnInit {
   movies: any[] = [];
+
+  // ui grid
   moviesPerChunk = 2
 
   chunk(arr: any[], size: number) {
@@ -24,9 +28,7 @@ export class MoviesGridComponent implements OnInit {
   ngOnInit(): void {
     this.movieService.searchResults$.subscribe(results => {
       this.movies = results;
-      console.log("SearchEvent: ", results);
-      
-    });
+    });    
   }
 }
 
