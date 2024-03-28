@@ -31,7 +31,7 @@ export class MovieService {
   searchMovies(searchTerm: string, page: number = 1): void {
 
     this.currentQuery = searchTerm;
-    const url = `http://www.omdbapi.com/?apikey=${this.API_KEY}&s=${encodeURIComponent(searchTerm)}&page=${page}`;
+    const url = `https://www.omdbapi.com/?apikey=${this.API_KEY}&s=${encodeURIComponent(searchTerm)}&page=${page}`;
     this.http.get<any>(url).subscribe({
       next: (response) => {
         if (response && response.Search) {
@@ -56,7 +56,7 @@ export class MovieService {
   }
 
   searchMovieById(id: string): void {
-    const url = `http://www.omdbapi.com/?apikey=${this.API_KEY}&i=${encodeURIComponent(id)}&plot=full`;
+    const url = `https://www.omdbapi.com/?apikey=${this.API_KEY}&i=${encodeURIComponent(id)}&plot=full`;
     this.http.get<any>(url).subscribe({
       next: (response) => {
         if (response) {
