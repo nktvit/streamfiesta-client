@@ -1,7 +1,7 @@
 <main class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
     <app-navbar [showSearchBox]="true"></app-navbar>
-    <div class="container max-w-5xl flex-grow flex flex-col mx-auto my-6">
-        <app-movies-grid *ngIf="totalResults"></app-movies-grid>
+    <div *ngIf="!isLoading" class="container max-w-5xl flex-grow flex flex-col mx-auto my-6">
+        <app-movies-grid *ngIf="totalResults" [movies]="movies"></app-movies-grid>
         <app-pagination *ngIf="totalResults" [totalResults]="totalResults" (pageChanged)="onPageChange($event)"></app-pagination>
         <app-notfound class="flex-grow flex flex-col " *ngIf="!totalResults"></app-notfound>
     </div>

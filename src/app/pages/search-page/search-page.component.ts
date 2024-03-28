@@ -4,7 +4,7 @@ import { MoviesGridComponent } from '../../components/movies-grid/movies-grid.co
 import { MovieService } from '../../services/movie.service';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgIf } from '@angular/common';
 import { NotfoundComponent } from '../../components/notfound/notfound.component';
 
@@ -16,10 +16,29 @@ import { NotfoundComponent } from '../../components/notfound/notfound.component'
   styleUrl: './search-page.component.css'
 })
 export class SearchPageComponent {
+  movies: any[] = [];
   totalResults: number = 0;
   currentPage: number = 1;
 
-  constructor(private movieService: MovieService, private router: Router) { }
+  isLoading: boolean = false
+
+  constructor(private movieService: MovieService, private router: Router, private route: ActivatedRoute) { }
+
+  loadMovies(prompt: string, page: number) {
+    this.isLoading = true;
+
+    try {
+      console.log("search page", prompt, page);
+
+      this.movieService.searchMovies(prompt, page);
+    } catch (error) {
+      console.error('Error during search:', error);
+    } finally {
+      this.isLoading = false;
+      console.log(this.isLoading);
+      
+    }
+  }
 
   ngOnInit(): void {
     this.movieService.totalResults$.subscribe(total => {
@@ -28,13 +47,24 @@ export class SearchPageComponent {
 
     });
 
+    this.movieService.searchResults$.subscribe(results => {
+      this.movies = results;
+    });  
 
+    // Handling navigation to different pages via query params
+    this.route.queryParams.subscribe(params => {
+      const query = params['query'];
+      const page:number = params['page'];
+      
+      if (query && this.movies.length === 0) {
+        this.loadMovies(query, page)
+      }
+    });
   }
 
   onPageChange(page: number): void {
     // Assuming the search box or another component triggers searchMovies in the service
-    this.movieService.searchMovies(this.movieService.currentQuery, page); // Implement currentQuery logic in service
-
+    this.loadMovies(this.movieService.currentQuery, page);
     this.router.navigate(['/search'], { queryParams: { page }, queryParamsHandling: 'merge' });
     this.currentPage = page
   }
