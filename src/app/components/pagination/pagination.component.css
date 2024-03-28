@@ -1,0 +1,12 @@
+mat-paginator {
+    background-color: transparent!important;
+    font-size: medium;
+
+}
+
+@media (prefers-color-scheme: dark) {
+    mat-paginator {
+        color: white;
+        stroke: white;
+    }
+}

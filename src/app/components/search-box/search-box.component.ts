@@ -1,3 +1,4 @@
+import { MoviesGridComponent } from './../movies-grid/movies-grid.component';
 import { Component } from '@angular/core';
 import { MovieService } from '../../services/movie.service';
 import { NgIf } from '@angular/common';
@@ -20,33 +21,34 @@ export class SearchBoxComponent {
 
   constructor(private movieService: MovieService, private route: ActivatedRoute, private router: Router) { }
 
-  performSearch(prompt: string, page: number = 1) {
+  performSearch(prompt: string) {
     if (prompt !== "" && prompt !== this.lastSearchTerm) {
       this.isLoading = true;
       this.lastSearchTerm = prompt
 
-      // change the query
-      this.router.navigate(['/search'], { queryParams: { query: prompt } });
       try {
-        this.movieService.searchMovies(prompt, page);
+        console.log("search-box", prompt);
+
+        this.movieService.searchMovies(prompt);
+        this.router.navigate(['/search'], { queryParams: { query: prompt } });
+
       } catch (error) {
         console.error('Error during search:', error);
       } finally {
         this.isLoading = false;
       }
+
+
     }
   }
 
   ngOnInit() {
-    // Handling navigation to different pages via query params
+    // populate the inputbox with the request in query
     this.route.queryParams.subscribe(params => {
       const query = params['query'];
-      const page = params['page'] ? parseInt(params['page'], 10) : 1;
 
       if (query) {
-        // Updating the searchTerm state for the ui
         this.searchTerm = query;
-        this.performSearch(query, page);
       }
     });
   }
@@ -63,11 +65,10 @@ export class SearchBoxComponent {
     this.placeholder = "Enter any title..."
   }
 
-  async handleSubmit(event: any) {
+  handleSubmit(event: any) {
     event.preventDefault();
-    if (this.mode === 'home') {
-      this.router.navigate(['/search'], { queryParams: { query: this.searchTerm } });
-    } else {
+
+    if (this.isPromptUpdated) {
       this.performSearch(this.searchTerm)
     }
   }
