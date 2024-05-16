@@ -1,7 +1,7 @@
 <header class="flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-white text-sm py-4 dark:bg-gray-800">
   <nav class="max-w-[85rem] w-full mx-auto px-4 flex flex-wrap basis-full items-center justify-between"
     aria-label="Global">
-    <a class="sm:order-1 flex-none text-xl font-semibold dark:text-white" [routerLink]="['/']">Movie Finder</a>
+    <a class="sm:order-1 mb-2 md:mb-0 flex-none text-xl font-semibold dark:text-white" [routerLink]="['/']">Movie Finder</a>
     <app-search-box class="sm:order-2" *ngIf="showSearchBox"></app-search-box>
     <div class="sm:order-3 flex items-center gap-x-2">
       <button type="button"
@@ -34,7 +34,7 @@
         <a [ngClass]="{'font-medium text-blue-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600': currentPage === '/about', 'font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600': currentPage !== '/about'}"
            [routerLink]="['/about']">About</a>
       </div>
-      
+
     </div>
   </nav>
 </header>

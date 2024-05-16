@@ -40,11 +40,11 @@ export class MovieService {
 
           this.searchResults.next(response.Search);
           this.currentPageSource.next(page);
-          this.totalResultsSource.next(response.totalResults);          
+          this.totalResultsSource.next(response.totalResults);
 
         } else {
           this.searchResults.next([]);
-          this.totalResultsSource.next(0);          
+          this.totalResultsSource.next(0);
 
         }
       },
@@ -74,7 +74,9 @@ export class MovieService {
       }
     });
   }
-}
+  getMovieDetails(movieId: string) {
+    this.searchMovieById(movieId)
+  }}
 
 
 

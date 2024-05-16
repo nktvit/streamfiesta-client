@@ -4,15 +4,15 @@
     <div class="mx-auto max-w-5xl p-4 md:p-6 lg:p-8 lg:py-6">
         <app-back-button></app-back-button>
 
-        <div class="mt-4 grid grid-cols-1 gap-12 py-2 md:grid-cols-12">
+        <div *ngIf="!isLoading" class="mt-4 grid grid-cols-1 gap-12 py-2 md:grid-cols-12">
             <div
                 class="flex justify-center h-fit px-4 md:col-span-4 md:justify-start md:px-0 lg:col-span-3"
             >
                 <img
-                    src="{{movieDetails.Poster}}"
+                  src="{{movieDetails.Poster}}"
                     alt="{{movieDetails.Title}} Poster"
                     class="w-full max-w-xs rounded-lg shadow-2xl transition duration-300 ease-in-out hover:scale-105 dark:shadow-white/10"
-                />
+                  />
             </div>
 
             <div class="md:col-span-8 lg:col-span-9">
@@ -45,6 +45,7 @@
                         >Metacritic {{movieDetails.Metascore}}</span
                     >
                 </div>
+
 
                 <div class="mb-6">
                     <h2
@@ -85,7 +86,13 @@
                         </p>
                     </ng-container>
                 </div>
+
+
+
             </div>
+
         </div>
+      <app-movie-player imdbId="{{movieDetails.imdbID}}"></app-movie-player>
+
     </div>
 </main>
