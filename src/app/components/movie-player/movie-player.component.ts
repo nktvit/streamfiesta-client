@@ -32,7 +32,6 @@ export class MoviePlayerComponent implements OnChanges {
 
     const baseUrl = 'https://vidsrc.to/embed/movie';
     const embedUrl = `${baseUrl}/${this.imdbId}`;
-    console.log("movie", embedUrl)
 
     return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
   }

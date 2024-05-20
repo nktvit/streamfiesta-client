@@ -2,7 +2,6 @@
 // @ts-nocheck
 
 const { writeFile, existsSync, mkdirSync } = require('fs');
-const { argv } = require('yargs');
 
 // Initialize dotenv to load environment variables
 require('dotenv').config();
@@ -42,8 +41,9 @@ const environmentFileContent = `
   export const environment = {
     production: ${isProduction},
     OMDB_API_KEY: '${process.env.OMDB_API_KEY}',
-    USE_STATIC_DATA: '${process.env.USE_STATIC_DATA}'
-    
+    USE_STATIC_DATA: '${process.env.USE_STATIC_DATA}',
+    BACKEND_URL: '${process.env.BACKEND_URL}'
+
   };
 `;
 

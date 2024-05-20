@@ -1,5 +1,6 @@
 import { HttpClientModule } from '@angular/common/http';
 import { Component } from '@angular/core';
+import { initFlowbite } from "flowbite";
 
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
@@ -13,4 +14,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 export class AppComponent {
   title = 'movie-streamer';
 
+  ngOnInit() {
+    initFlowbite();
+  }
 }

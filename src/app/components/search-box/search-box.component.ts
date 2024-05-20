@@ -1,4 +1,3 @@
-import { MoviesGridComponent } from './../movies-grid/movies-grid.component';
 import { Component } from '@angular/core';
 import { MovieService } from '../../services/movie.service';
 import { NgIf } from '@angular/common';

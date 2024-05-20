@@ -10,19 +10,17 @@ import {Location} from '@angular/common';
 })
 export class BackButtonComponent {
   @Input() action: () => void = () => {
-    console.log("Back button");
-    
-  }; 
 
-  constructor(private _location: Location) 
+  };
+
+  constructor(private _location: Location)
   {}
 
-  handleClick() {    
+  handleClick() {
     if (this.action) {
       this.action();
       this._location.back();
-      console.log(this._location);
-      
+
     }
   }
 }
