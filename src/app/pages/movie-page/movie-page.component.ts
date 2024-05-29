@@ -59,7 +59,7 @@ export class MoviePageComponent {
           this.type = this.movieService.getMediaType(details);
 
           this.adjustedPlot = this.adjustPlot(this.movieDetails.Plot);
-          this.isPlotLong = this.adjustedPlot.length > 100;
+          this.isPlotLong = this.adjustedPlot.length > 300;
           this.shouldClamp = !this.isFullPlot && this.isPlotLong;
         }
       })

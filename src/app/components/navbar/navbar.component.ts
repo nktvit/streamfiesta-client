@@ -19,5 +19,6 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentPage = this.router.url
+    console.log(this.currentPage)
   }
 }
