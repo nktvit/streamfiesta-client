@@ -13,16 +13,5 @@ import { PaginationComponent } from '../pagination/pagination.component';
 })
 export class MoviesGridComponent {
   @Input() movies: any[] = [];
-
-  // ui 
-  isLoading = false
-  moviesPerChunk = 2
-
   constructor(private route: ActivatedRoute) { }
-
-  chunk(arr: any[], size: number) {
-    return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
-      arr.slice(i * size, i * size + size)
-    )
-  }
 }

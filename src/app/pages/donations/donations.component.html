@@ -1,62 +1,63 @@
 <main class="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
   <app-navbar [showSearchBox]="true"></app-navbar>
 
-  <div class="mx-auto p-8 max-w-5xl md:p-6 lg:p-8 lg:py-6">
+  <div class="mx-auto py-8 max-w-5xl md:p-6 lg:p-8 lg:py-6">
     <h1 class="text-center text-2xl text-white font-bold ">Support us with your contribution!</h1>
     <p class="text-center text-gray-400 mt-3">Your donation helps us to keep the lights on and to continue providing you
       with <strong>the best movie experience with no ads or subscriptions.</strong></p>
-    <div class="mt-8">
-      <div class="mt-8">
-        <form class="flex flex-col gap-4" [formGroup]="donationForm" (ngSubmit)="donate($event)">
-          <div class="flex flex-col gap-2">
-            <label for="name" class="text-gray-400">Name <sup class="text-red-800 text-md"> *</sup></label>
-            <input formControlName="name" type="text" id="name" name="name"
-                   class="p-2 rounded-lg bg-gray-800 text-white" placeholder="John Doe" required>
-          </div>
-          <div class="flex flex-col gap-2">
-            <label for="email" class="text-gray-400">Email</label>
-            <input formControlName="email" type="email" id="email" name="email" class="p-2 rounded-lg bg-gray-800 text-white"
-                   placeholder="john@email.org">
-          </div>
+    <div class="mt-8 mx-3">
+      <form class="flex flex-col gap-4" [formGroup]="donationForm" (ngSubmit)="donate($event)">
+        <div class="flex flex-col gap-2">
+          <label for="name" class="text-gray-400">Name <sup class="text-red-800 text-md"> *</sup></label>
+          <input formControlName="name" type="text" id="name" name="name"
+                 class="p-2 rounded-lg bg-gray-800 text-white" placeholder="John Doe" required>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label for="email" class="text-gray-400">Email</label>
+          <input formControlName="email" type="email" id="email" name="email"
+                 class="p-2 rounded-lg bg-gray-800 text-white"
+                 placeholder="john@email.org">
+        </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="amount" class="text-gray-400">Amount (€) <sup class="text-red-800 text-md"> *</sup></label>
-            <div class="flex items-center space-x-2">
-              <input
-                required
-                formControlName="amount"
-                type="number"
-                id="amount"
-                min="1"
-                name="amount"
-                class="w-32 p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button type="submit"
-                      data-modal-target="defaultModal" data-modal-toggle="defaultModal"
-                      [disabled]="donationForm.invalid || isLoading"
-                      class="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition duration-300 disabled:opacity-50 disabled:pointer-events-none">
+        <div class="flex flex-col gap-2">
+          <label for="amount" class="text-gray-400">Amount (€) <sup class="text-red-800 text-md"> *</sup></label>
+          <div class="flex items-center space-x-2">
+            <input
+              required
+              formControlName="amount"
+              type="number"
+              id="amount"
+              min="1"
+              name="amount"
+              class="w-32 p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button type="submit"
+                    data-modal-target="defaultModal" data-modal-toggle="defaultModal"
+                    [disabled]="donationForm.invalid || isLoading"
+                    class="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition duration-300 disabled:opacity-50 disabled:pointer-events-none">
         <span *ngIf="isLoading"
               class="animate-spin inline-block w-4 h-4 border-2 border-white rounded-full border-t-transparent"></span>
-                {{ isLoading ? '' : 'Donate' }}
-              </button>
-              <div *ngIf="donationForm.controls['amount'].invalid && (donationForm.controls['amount'].dirty || donationForm.controls['amount'].touched)" class="text-red-500 text-sm">
-                Please enter a valid amount
-              </div>
+              {{ isLoading ? '' : 'Donate' }}
+            </button>
+            <div
+              *ngIf="donationForm.controls['amount'].invalid && (donationForm.controls['amount'].dirty || donationForm.controls['amount'].touched)"
+              class="text-red-500 text-sm">
+              Please enter a valid amount
             </div>
           </div>
+        </div>
 
-          <div class="flex space-x-2">
-            <button
-              *ngFor="let amount of donationAmountsInput"
-              (click)="updateContributionInput($event, amount)"
-              class="px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition duration-300"
-            >
-              {{ amount }}€
-            </button>
+        <div class="flex space-x-2">
+          <button
+            *ngFor="let amount of donationAmountsInput"
+            (click)="updateContributionInput($event, amount)"
+            class="px-3 sm:px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition duration-300"
+          >
+            {{ amount }}€
+          </button>
 
-          </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
     <h2 class="text-2xl text-white text-center md:text-left font-semibold my-8">Our Generous Contributors</h2>
     <div class="grid grid-cols-4 text-white sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
