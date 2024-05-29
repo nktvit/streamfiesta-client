@@ -36,28 +36,26 @@ export class SearchPageComponent {
     } finally {
       this.isLoading = false;
       console.log(this.isLoading);
-      
+
     }
   }
 
   ngOnInit(): void {
     this.movieService.totalResults$.subscribe(total => {
       this.totalResults = total;
-      console.log(total);
-
     });
 
     this.movieService.searchResults$.subscribe(results => {
       this.movies = results;
-    });  
+    });
 
-    // Handling navigation to different pages via query params
+    // Handling initial query param
     this.route.queryParams.subscribe(params => {
       const query = params['query'];
-      const page:number = params['page'];
-      
+      const page: number = params['page'] || 1; // Default page 1
+
       if (query && this.movies.length === 0) {
-        this.loadMovies(query, page)
+        this.loadMovies(query, page);
       }
     });
   }

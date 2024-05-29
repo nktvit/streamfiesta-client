@@ -13,6 +13,7 @@ import {NgIf} from "@angular/common";
 })
 export class MoviePlayerComponent implements OnChanges {
   @Input() imdbId: string = '';
+  @Input() type: string = 'movie';
   @ViewChild('iframe') iframeRef!: ElementRef<HTMLIFrameElement>;
 
   safeEmbedUrl: SafeResourceUrl | null = null;
@@ -30,17 +31,10 @@ export class MoviePlayerComponent implements OnChanges {
       return null;
     }
 
-    const baseUrl = 'https://vidsrc.to/embed/movie';
-    const embedUrl = `${baseUrl}/${this.imdbId}`;
+    const baseUrl = 'https://vidsrc.to/embed';
+    const embedUrl = `${baseUrl}/${this.type}/${this.imdbId}`;
 
     return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
   }
-
-  togglePlay() {
-    this.isPlaying = !this.isPlaying;
-    const message = { type: 'playVideo', value: this.isPlaying };
-    this.iframeRef.nativeElement.contentWindow?.postMessage(message, 'https://vidsrc.to'); // Be specific about the origin
-  }
-
 }
 

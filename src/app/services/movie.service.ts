@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment'
-import { Router, ActivatedRoute } from '@angular/router';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject, catchError, map, Observable, of, tap} from 'rxjs';
+import {HttpClient} from '@angular/common/http';
+import {environment} from '../../environments/environment'
+import {Router, ActivatedRoute} from '@angular/router';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 
 
 export class MovieService {
@@ -15,8 +15,8 @@ export class MovieService {
   private searchResults = new BehaviorSubject<any>([]);
   public searchResults$ = this.searchResults.asObservable();
 
-  private movieDetails = new BehaviorSubject<any>({})
-  public movieDetails$ = this.movieDetails.asObservable()
+  private movieDetailsSubject = new BehaviorSubject<any>({})
+  public movieDetails$ = this.movieDetailsSubject.asObservable()
 
   // page states
   private currentPageSource = new BehaviorSubject<number>(1);
@@ -25,7 +25,8 @@ export class MovieService {
   currentPage$ = this.currentPageSource.asObservable();
   totalResults$ = this.totalResultsSource.asObservable();
 
-  constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router) { }
+  constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router) {
+  }
 
 
   searchMovies(searchTerm: string, page: number = 1): void {
@@ -35,9 +36,6 @@ export class MovieService {
     this.http.get<any>(url).subscribe({
       next: (response) => {
         if (response && response.Search) {
-          // this.router.navigate(['/search'], { queryParams: { query: searchTerm, page } });
-
-
           this.searchResults.next(response.Search);
           this.currentPageSource.next(page);
           this.totalResultsSource.next(response.totalResults);
@@ -55,29 +53,71 @@ export class MovieService {
     });
   }
 
-  searchMovieById(id: string): void {
-    const url = `https://www.omdbapi.com/?apikey=${this.API_KEY}&i=${encodeURIComponent(id)}&plot=full`;
-    this.http.get<any>(url).subscribe({
-      next: (response) => {
+  getMovieDetails(movieId: string): Observable<any> {
+    // Reset the movieDetailsSubject before fetching new movie details
+    this.movieDetailsSubject.next(null);
+
+    return this.fetchMovieDetails(movieId).pipe(
+      tap((response) => {
         if (response) {
-          this.router.navigate(['/movie', id]);
-
-          this.movieDetails.next(response);
-        } else {
-          this.movieDetails.next({});
-
+          this.router.navigate(['/movie', movieId]);
         }
-      },
-      error: (error) => {
+      }),
+      catchError((error) => {
         console.error('Error fetching data: ', error);
-        this.movieDetails.next({});
-      }
-    });
+        this.movieDetailsSubject.next({});
+        return of(null);
+      })
+    );
   }
-  getMovieDetails(movieId: string) {
-    this.searchMovieById(movieId)
-  }}
 
+  private fetchMovieDetails(id: string): Observable<any> {
+    const url = `https://www.omdbapi.com/?apikey=${this.API_KEY}&i=${encodeURIComponent(id)}&plot=full`;
+    return this.http.get<any>(url, {observe: 'response'}).pipe(
+      map((response) => {
+        if (response.ok && response.body && response.body.imdbID) {
+          return response.body;
+        } else {
+          throw new Error('Invalid API response');
+        }
+      }),
+      tap((response) => {
+        this.movieDetailsSubject.next(response);
+      }),
+      catchError((error) => {
+        console.error('Error fetching data: ', error);
+        this.movieDetailsSubject.next({});
+        return of(null);
+      })
+    );
+  }
+
+  getImdbId(movieDetails: any): string {
+    if (movieDetails && movieDetails.imdbID) {
+      return movieDetails.imdbID;
+    }
+    return '';
+  }
+  getMediaType(movieDetails: any): string {
+    if (movieDetails.Type === 'movie') return 'movie'
+    else if (movieDetails.Type === 'series') return 'tv'
+    else {
+      return 'movie'
+    }
+  }
+  formatMovieDetailsArray(details: any) {
+    return [
+      { label: 'Director', value: details.Director, show: details.Director && details.Director !== 'N/A' },
+      { label: 'Country', value: details.Country, show: details.Country && details.Country !== 'N/A' },
+      { label: 'Language', value: details.Language, show: details.Language && details.Language !== 'N/A' },
+      { label: 'Writers', value: details.Writer, show: details.Writer && details.Writer !== 'N/A' },
+      { label: 'Stars', value: details.Actors, show: true },
+      { label: 'Awards', value: details.Awards, show: details.Awards && details.Awards !== 'N/A' },
+      { label: 'Box Office', value: details.BoxOffice, show: details.BoxOffice && details.BoxOffice !== 'N/A' },
+    ];
+  }
+
+}
 
 
 

@@ -5,6 +5,7 @@ import {NgClass, NgFor, NgIf, NgOptimizedImage} from '@angular/common';
 import {NavbarComponent} from '../../components/navbar/navbar.component';
 import {BackButtonComponent} from '../../components/back-button/back-button.component';
 import {MoviePlayerComponent} from "../../components/movie-player/movie-player.component";
+import {catchError, finalize, of, switchMap, tap} from "rxjs";
 
 @Component({
   selector: 'app-movie-page',
@@ -14,67 +15,72 @@ import {MoviePlayerComponent} from "../../components/movie-player/movie-player.c
   styleUrl: './movie-page.component.css'
 })
 export class MoviePageComponent {
-  isLoading = false
-
-  isFullPlot = false
-
-  movieId: string = ""
-  movieDetails: any = {}
-
+  isLoading = false;
+  invalidResponse: boolean = false;
+  isFullPlot = false;
+  shouldClamp = false;
+  isPlotLong = false;
+  adjustedPlot = '';
+  movieId: string = "";
+  movieDetails: any = {};
   movieDetailsArray: any[] = [];
-
-  rating: any;
+  protected type: string = 'movie';
+  protected imdbId: any;
 
   constructor(private movieService: MovieService, private route: ActivatedRoute) {
   }
 
+
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.pipe(
+      switchMap(params => {
+        const id = params.get('id');
+        if (id !== null) {
+          this.movieId = id;
+          this.isLoading = true;
+          return this.movieService.getMovieDetails(this.movieId).pipe(
+            finalize(() => this.isLoading = false),
+            catchError((error) => {
+              console.error('Error fetching movie details: ', error);
+              this.invalidResponse = true;
+              return of(null);
+            })
+          );
+        }
+        return of(null);
+      }),
+      tap(details => {
+        if (details) {
+          this.invalidResponse = false;
+          this.movieDetails = details
+          // UI logic
+          this.movieDetailsArray = this.movieService.formatMovieDetailsArray(details);
+          this.imdbId = this.movieService.getImdbId(details);
+          this.type = this.movieService.getMediaType(details);
 
-      var id = params.get('id')
-      if (id !== null) {
-        this.movieId = id;
-        this.loadMovieDetails()
-      }
-    });
-
-    // subscribe on movieDetails
-    this.movieService.movieDetails$.subscribe(results => {
-      if (results) {
-        this.isLoading = false;
-
-      }
-
-      this.movieDetails = results;
-      this.movieDetailsArray = [
-        {
-          label: 'Director',
-          value: this.movieDetails.Director,
-          show: this.movieDetails.Director && this.movieDetails.Director !== 'N/A'
-        },
-        {label: 'Writers', value: this.movieDetails.Writer, show: true},
-        {label: 'Stars', value: this.movieDetails.Actors, show: true},
-        {
-          label: 'Awards',
-          value: this.movieDetails.Awards,
-          show: this.movieDetails.Awards && this.movieDetails.Awards !== 'N/A'
-        },
-        {
-          label: 'Total Seasons',
-          value: this.movieDetails.totalSeasons,
-          show: this.movieDetails.totalSeasons && this.movieDetails.totalSeasons !== 'N/A'
-        },
-      ];
-    });
-
-
+          this.adjustedPlot = this.adjustPlot(this.movieDetails.Plot);
+          this.isPlotLong = this.adjustedPlot.length > 100;
+          this.shouldClamp = !this.isFullPlot && this.isPlotLong;
+        }
+      })
+    ).subscribe();
   }
 
-
-  loadMovieDetails() {
-    this.movieService.getMovieDetails(this.movieId)
-    this.isLoading = true
-    this.movieDetails = this.movieService.movieDetails$;
+  togglePlot() {
+    this.isFullPlot = !this.isFullPlot;
+    this.shouldClamp = !this.isFullPlot && this.isPlotLong;
   }
 
+  adjustPlot(plot: string): string {
+    // Remove trailing comma if it exists
+    if (!plot) {
+      return '';
+    }
+
+    let adjusted: string = plot.trim();
+    if (adjusted.endsWith(',')) {
+      adjusted = adjusted.slice(0, -1);
+    }
+    return adjusted;
+  }
 }

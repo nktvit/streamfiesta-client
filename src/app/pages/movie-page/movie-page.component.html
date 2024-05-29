@@ -1,10 +1,9 @@
 <main class="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
   <app-navbar [showSearchBox]="true"></app-navbar>
 
-  <div class="mx-auto max-w-5xl p-4 md:p-6 lg:p-8 lg:py-6">
+  <div class="mx-auto max-w-5xl mb-8 p-4 md:p-6 lg:py-10 xl:py-14 2xl:py-20">
     <app-back-button></app-back-button>
-
-    <div *ngIf="!isLoading" class="my-4 grid grid-cols-1 gap-12 py-2 md:grid-cols-12">
+    <div *ngIf="!isLoading" class="my-6 md:mt-12 grid grid-cols-1 gap-12 md:grid-cols-12">
       <div
         class="flex justify-center h-fit px-4 md:col-span-4 md:justify-start md:px-0 lg:col-span-3"
       >
@@ -22,7 +21,8 @@
           {{ movieDetails.Title }} ({{ movieDetails.Year }})
         </h1>
         <div class="mb-4 text-sm text-gray-500 dark:text-gray-400">
-          {{ movieDetails.Rated }} | {{ movieDetails.Runtime }} |
+          {{ movieDetails.Rated }} | {{ movieDetails.Runtime }}
+          | {{ movieDetails.totalSeasons && movieDetails.totalSeasons }} Seasons |
           {{ movieDetails.Genre }}
         </div>
         <div class="mb-6 flex space-x-2">
@@ -48,24 +48,22 @@
 
 
         <div class="mb-6">
-          <h2
-            class="mb-2 text-xl font-semibold text-gray-900 md:text-2xl dark:text-white"
-          >
+          <h2 class="mb-2 text-xl font-semibold text-gray-900 md:text-2xl dark:text-white">
             Plot
           </h2>
-          <p
-            class="text-gray-700 dark:text-gray-300"
-            [ngClass]="{'line-clamp-3': !isFullPlot}"
-          >
-            {{ movieDetails.Plot }}
+          <p class="text-gray-700 dark:text-gray-300" [ngClass]="{'line-clamp-3': shouldClamp}">
+            {{ adjustedPlot }}
           </p>
           <button
-            class="mt-2 text-sm text-blue-600 dark:text-blue-400"
-            (click)="isFullPlot = !isFullPlot"
+            *ngIf="isPlotLong"
+            class="mt-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+            (click)="togglePlot()"
           >
             {{ isFullPlot ? 'Show Less' : 'Read More' }}
           </button>
         </div>
+
+
 
         <div>
           <h2
@@ -91,7 +89,11 @@
       </div>
 
     </div>
-    <app-movie-player imdbId="{{movieDetails.imdbID}}"></app-movie-player>
+    <div *ngIf="invalidResponse">
+      <p>Error: Unable to fetch movie details.</p>
+    </div>
+
+    <app-movie-player *ngIf="imdbId && !invalidResponse" [imdbId]="imdbId" [type]="type"></app-movie-player>
 
   </div>
 </main>
