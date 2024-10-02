@@ -1,11 +1,9 @@
 <div class="w-full" *ngIf="safeEmbedUrl">
   <iframe
-    #iframe
     [src]="safeEmbedUrl"
-    sandbox="allow-scripts allow-same-origin"
     width="100%"
-    class="aspect-video"
+    style="aspect-ratio: 16 / 9;"
     allowfullscreen
   ></iframe>
 </div>
-<p *ngIf="!safeEmbedUrl">No valid IMDb ID provided.</p>
+<p *ngIf="!safeEmbedUrl">No valid ID provided.</p>

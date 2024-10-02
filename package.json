@@ -21,7 +21,6 @@
     "@angular/platform-browser": "^17.2.0",
     "@angular/platform-browser-dynamic": "^17.2.0",
     "@angular/router": "^17.2.0",
-    "@vercel/node": "^3.2.17",
     "flowbite": "^2.3.0",
     "generate-avatar": "^1.4.10",
     "ng-process-env": "^16.0.6",
