@@ -2,17 +2,37 @@ import { Component } from '@angular/core';
 import { MoviesGridComponent } from '../../components/movies-grid/movies-grid.component';
 import { SearchBoxComponent } from '../../components/search-box/search-box.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
-import {NgForOf} from "@angular/common";
+import {JsonPipe, NgForOf} from "@angular/common";
 import {RouterLink} from "@angular/router";
+import { VercelApiService } from '../../services/vercel-api.service';
 
 @Component({
     selector: 'app-main',
     standalone: true,
     templateUrl: './main.component.html',
     styleUrl: './main.component.css',
-  imports: [SearchBoxComponent, MoviesGridComponent, NavbarComponent, NgForOf, RouterLink]
+  imports: [SearchBoxComponent, MoviesGridComponent, NavbarComponent, NgForOf, RouterLink, JsonPipe]
 })
 export class MainComponent {
+  result: any;
+
+  constructor(private vercelApiService: VercelApiService) {}
+
+  getData() {
+    this.vercelApiService.getData().subscribe(
+      data => this.result = data,
+      error => console.error('Error:', error)
+    );
+  }
+
+  postData() {
+    const data = { message: 'Hello from Angular!' };
+    this.vercelApiService.postData(data).subscribe(
+      response => this.result = response,
+      error => console.error('Error:', error)
+    );
+  }
+
   featuredMovies = [
     {
       title: 'The Shawshank Redemption',
