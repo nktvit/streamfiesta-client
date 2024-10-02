@@ -1,0 +1,10 @@
+{
+  "/api": {
+    "target": "https://vidsrc.me",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api": ""
+    }
+  }
+}

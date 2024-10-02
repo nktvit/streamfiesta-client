@@ -42,3 +42,4 @@ src/environments
 .DS_Store
 Thumbs.db
 /.env
+.vercel
