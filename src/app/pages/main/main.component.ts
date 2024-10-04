@@ -2,18 +2,22 @@ import {Component} from '@angular/core';
 import {MoviesGridComponent} from '../../components/movies-grid/movies-grid.component';
 import {SearchBoxComponent} from '../../components/search-box/search-box.component';
 import {NavbarComponent} from '../../components/navbar/navbar.component';
-import {JsonPipe, NgForOf} from "@angular/common";
+import {JsonPipe, NgForOf, NgIf, NgOptimizedImage} from "@angular/common";
 import {RouterLink} from "@angular/router";
+import {MatMonthView} from "@angular/material/datepicker";
+import {PosterComponent} from "../../components/poster/poster.component";
+import {IMovie} from "../../interfaces/IMovie";
 
 @Component({
   selector: 'app-main',
   standalone: true,
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
-  imports: [SearchBoxComponent, MoviesGridComponent, NavbarComponent, NgForOf, RouterLink, JsonPipe]
+  imports: [SearchBoxComponent, MoviesGridComponent, NavbarComponent, NgForOf, RouterLink, JsonPipe, NgOptimizedImage, NgIf, PosterComponent]
 })
 export class MainComponent {
-  featuredMovies = [
+
+  featuredMovies : IMovie[] = [
     {
       title: 'The Shawshank Redemption',
       description: 'Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.',
@@ -34,4 +38,5 @@ export class MainComponent {
     },
   ];
 
+  protected readonly MatMonthView = MatMonthView;
 }

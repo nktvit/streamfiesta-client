@@ -1,0 +1,25 @@
+<div
+  [routerLink]="['/movie', movie.imdbID]"
+  class="group cursor-pointer relative transition-transform duration-300 ease-in-out hover:scale-105 h-[440px] w-[300px]"
+  tabindex="0"
+  [attr.aria-label]="'View details for ' + movie.title"
+  role="button">
+
+  <div class="absolute inset-0 bg-gray-200 animate-pulse" *ngIf="isLoading"></div>
+
+  <img
+    [ngSrc]="imageUrl"
+    [alt]="movie.title || 'Movie Poster'"
+    width="300"
+    height="440"
+    (load)="onImageLoad()"
+    (error)="onImageError()"
+    class="absolute inset-0 w-full h-full rounded-lg object-cover shadow-xl transition-all duration-300 ease-in-out group-hover:shadow-2xl group-hover:opacity-90 dark:shadow-white/10"
+    [ngClass]="{'opacity-0': isLoading, 'opacity-100': !isLoading}"
+    loading="lazy">
+
+  <div
+    class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out">
+    <p class="text-white text-lg lg:text-sm font-semibold">{{ movie.title }}</p>
+  </div>
+</div>

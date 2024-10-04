@@ -1,29 +1,20 @@
-<main class="bg-gradient-to-b from-gray-900 to-black min-h-screen flex flex-col">
+<main class="bg-gradient-to-b from-gray-100 to-gray-50 dark:from-gray-900 dark:to-black min-h-screen flex flex-col">
   <app-navbar class="z-10"></app-navbar>
 
   <section class="container mx-auto px-4 mt-12 flex flex-col items-center text-center space-y-6">
-    <h1 class="text-4xl font-bold tracking-tight text-white sm:text-6xl md:text-7xl">Discover Your Next Movie Obsession</h1>
-    <p class="text-lg text-gray-300 max-w-3xl">
-      Unleash a world of captivating stories and unforgettable characters.  Our massive library holds virtually every English-language movie imaginable, from timeless classics to the latest blockbusters.
+    <h1 class="text-4xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-6xl">Discover Your Next<br/>Movie
+      Obsession</h1>
+    <p class="text-lg text-gray-500 dark:text-gray-300 max-w-3xl">
+      Unleash a world of captivating stories and unforgettable characters. Our massive library holds virtually every
+      English-language movie imaginable, from timeless classics to the latest blockbusters.
     </p>
     <app-search-box class="w-full max-w-xl"></app-search-box>
   </section>
 
-  <section class="container mx-auto px-12 mt-16">
-    <h2 class="text-2xl font-semibold mb-4 text-white">Featured Movies</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <div *ngFor="let movie of featuredMovies"
-           [routerLink]="['/movie', movie.imdbID]"
-           class="group cursor-pointer relative transition-transform duration-300 ease-in-out hover:scale-105">
-        <img [src]="movie.posterUrl !== 'N/A' && movie.posterUrl ? movie.posterUrl : 'https://placehold.co/300x420@2x?text=Image is not available'" alt="{{movie.title}}"
-             class="h-full w-full rounded-lg object-cover transition-all duration-300 ease-in-out group-hover:opacity-90">
-        <div
-          class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out">
-          <p class="text-white text-lg lg:text-sm font-semibold">{{movie.title}}</p>
-<!--          <p class="text-gray-300 text-sm">{{movie.Year}}</p>-->
-        </div>
-<!--        <a [routerLink]="['/movie', movie.imdbID]" class="absolute inset-0 z-10"></a>-->
-      </div>
+  <section class="container mx-auto px-12 my-16">
+    <div class="flex flex-col space-y-3 justify-center sm:flex-row sm:space-y-0 sm:space-x-2">
+      <app-poster *ngFor="let movie of featuredMovies" [movie]="movie">
+      </app-poster>
     </div>
   </section>
 </main>
