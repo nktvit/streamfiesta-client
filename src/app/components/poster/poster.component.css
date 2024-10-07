@@ -1,0 +1,16 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.poster-container {
+  display: grid;
+  width: 100%;
+  height: 100%;
+}
+.poster-content {
+  aspect-ratio: 2 / 3;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+}

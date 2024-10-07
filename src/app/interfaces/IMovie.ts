@@ -1,5 +1,5 @@
 export interface IMovie {
-  posterUrl: string
+  Poster: string
   imdbID: string
   description: string
   title: string

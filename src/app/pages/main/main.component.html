@@ -11,8 +11,8 @@
     <app-search-box class="w-full max-w-xl"></app-search-box>
   </section>
 
-  <section class="container mx-auto px-12 my-16">
-    <div class="flex flex-col space-y-3 justify-center sm:flex-row sm:space-y-0 sm:space-x-2">
+  <section class="@container mx-auto px-12 my-16 w-full lg:w-[80%] xl:w-[60%] 2xl:max-w-[1000px]">
+    <div class="flex flex-col space-y-3 justify-center sm:flex-row sm:space-y-0 sm:space-x-2 w-full">
       <app-poster *ngFor="let movie of featuredMovies" [movie]="movie">
       </app-poster>
     </div>

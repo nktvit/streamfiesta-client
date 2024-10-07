@@ -7,6 +7,7 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgIf } from '@angular/common';
 import { NotfoundComponent } from '../../components/notfound/notfound.component';
+import {IMovie} from "../../interfaces/IMovie";
 
 @Component({
   selector: 'app-search-page',
@@ -16,7 +17,7 @@ import { NotfoundComponent } from '../../components/notfound/notfound.component'
   styleUrl: './search-page.component.css'
 })
 export class SearchPageComponent {
-  movies: any[] = [];
+  movies: IMovie[] = [];
   totalResults: number = 0;
   currentPage: number = 1;
 
