@@ -4,9 +4,9 @@ import {DatePipe, NgForOf, NgIf} from "@angular/common";
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {ContributorService} from "../../services/contributor.service";
 import {generateFromString} from 'generate-avatar'
-import {IContributorFetch} from "../../interfaces/IContributorFetch";
+import {IContributorFetch} from "../../interfaces/contributor.interface";
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
-import {INewContributor} from "../../interfaces/INewContributor";
+import {INewContributor} from "../../interfaces/contributor.interface";
 import {LoggerService} from "../../services/logger.service";
 
 @Component({

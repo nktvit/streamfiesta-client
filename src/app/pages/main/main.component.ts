@@ -6,7 +6,7 @@ import {JsonPipe, NgForOf, NgOptimizedImage} from "@angular/common";
 import {RouterLink} from "@angular/router";
 import {MatMonthView} from "@angular/material/datepicker";
 import {PosterComponent} from "../../components/poster/poster.component";
-import {IMovie} from "../../interfaces/IMovie";
+import {IMovie} from "../../interfaces/movie.interface";
 
 @Component({
   selector: 'app-main',

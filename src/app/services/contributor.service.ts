@@ -2,8 +2,8 @@ import {HttpClient, HttpErrorResponse} from "@angular/common/http";
 import {catchError, finalize, map, Observable, of, throwError} from "rxjs";
 import {environment} from "../../environments/environment";
 import {Injectable} from "@angular/core";
-import {IContributorFetch} from "../interfaces/IContributorFetch";
-import {INewContributor} from "../interfaces/INewContributor";
+import {IContributorFetch} from "../interfaces/contributor.interface";
+import {INewContributor} from "../interfaces/contributor.interface";
 import {LoggerService} from "./logger.service";
 
 @Injectable({

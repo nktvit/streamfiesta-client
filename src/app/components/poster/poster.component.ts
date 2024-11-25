@@ -1,7 +1,7 @@
 import { Component, Input, ChangeDetectorRef, OnInit, SimpleChanges } from '@angular/core';
 import { RouterLink } from "@angular/router";
 import { DomSanitizer } from "@angular/platform-browser";
-import { IMovie } from "../../interfaces/IMovie";
+import { IMovie } from "../../interfaces/movie.interface";
 import { NgOptimizedImage, NgClass, NgIf } from "@angular/common";
 import {LoggerService} from "../../services/logger.service";
 
