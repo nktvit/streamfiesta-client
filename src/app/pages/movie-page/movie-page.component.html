@@ -7,11 +7,7 @@
       <div
         class="flex justify-center h-fit px-4 md:col-span-4 md:justify-start md:px-0 lg:col-span-3"
       >
-        <img
-          src="{{movieDetails.Poster}}"
-          alt="{{movieDetails.Title}} Poster"
-          class="w-full max-w-xs rounded-lg shadow-2xl transition duration-300 ease-in-out hover:scale-105 dark:shadow-white/10"
-        />
+        <app-poster class="shadow-2xl dark:shadow-white/10" [movie]="movieDetails"></app-poster>
       </div>
 
       <div class="md:col-span-8 lg:col-span-9">

@@ -3,6 +3,7 @@ import {BehaviorSubject, catchError, map, Observable, of, tap} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment'
 import {Router, ActivatedRoute} from '@angular/router';
+import {LoggerService} from "./logger.service";
 
 @Injectable({providedIn: 'root'})
 
@@ -25,7 +26,7 @@ export class MovieService {
   currentPage$ = this.currentPageSource.asObservable();
   totalResults$ = this.totalResultsSource.asObservable();
 
-  constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router) {
+  constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router, private logger: LoggerService) {
   }
 
 
@@ -47,7 +48,7 @@ export class MovieService {
         }
       },
       error: (error) => {
-        console.error('Error fetching data: ', error);
+        this.logger.error('Error fetching data: ', error);
         this.searchResults.next([]);
       }
     });
@@ -64,7 +65,7 @@ export class MovieService {
         }
       }),
       catchError((error) => {
-        console.error('Error fetching data: ', error);
+        this.logger.error('Error fetching data: ', error);
         this.movieDetailsSubject.next({});
         return of(null);
       })
@@ -85,7 +86,7 @@ export class MovieService {
         this.movieDetailsSubject.next(response);
       }),
       catchError((error) => {
-        console.error('Error fetching data: ', error);
+        this.logger.error('Error fetching data: ', error);
         this.movieDetailsSubject.next({});
         return of(null);
       })

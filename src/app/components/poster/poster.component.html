@@ -1,8 +1,8 @@
 <div
   [routerLink]="['/movie', movie.imdbID]"
-  class="poster-container group cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105 min-w-16"
+  class="poster-container group select-none cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105 min-w-16"
   tabindex="0"
-  [attr.aria-label]="'View details for ' + movie.title">
+  [attr.aria-label]="'View details for ' + movie.Title">
 
   <div class="poster-content relative w-full h-full">
     <div class="absolute inset-0 bg-gray-200 animate-pulse" *ngIf="isLoading"></div>
@@ -10,7 +10,7 @@
     <ng-container *ngIf="imageUrl; else placeholderImage">
       <img
         [ngSrc]="imageUrl"
-        [alt]="movie.title || 'Movie Poster'"
+        [alt]="movie.Title || 'Movie Poster'"
         fill
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         (load)="onImageLoad()"
@@ -22,17 +22,19 @@
 
     <ng-template #placeholderImage>
       <img
-        [src]="placeholderUrl"
-        [alt]="movie.title || 'Movie Poster'"
+        [ngSrc]="placeholderUrl"
+        [alt]="movie.Title || 'Movie Poster'"
         (load)="onImageLoad()"
         class="rounded-lg object-cover transition-all duration-300 ease-in-out group-hover:opacity-90"
         [ngClass]="{'opacity-0': isLoading, 'opacity-100': !isLoading}"
-      >
+        fill
+        >
     </ng-template>
 
     <div
+      *ngIf="displayTitle"
       class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out">
-      <p class="text-white text-xs sm:text-base lg:text-lg font-semibold line-clamp-2">{{ movie.title }}</p>
+      <span class="text-white text-xs sm:text-base lg:text-md font-semibold line-clamp-3">{{ movie.Title }}</span>
     </div>
   </div>
 

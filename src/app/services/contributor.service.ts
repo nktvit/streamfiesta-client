@@ -4,12 +4,15 @@ import {environment} from "../../environments/environment";
 import {Injectable} from "@angular/core";
 import {IContributorFetch} from "../interfaces/IContributorFetch";
 import {INewContributor} from "../interfaces/INewContributor";
+import {LoggerService} from "./logger.service";
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class ContributorService {
+  constructor(private http: HttpClient, private logger: LoggerService) {
+  }
 
   getContributors(): Observable<IContributorFetch[]> {
     return this.http.get<IContributorFetch[]>(`${environment.BACKEND_URL}/contributions`)
@@ -27,7 +30,7 @@ export class ContributorService {
     return this.http.post<INewContributor>(`${environment.BACKEND_URL}/contribution`, {data})
       .pipe(
         finalize(() => {
-          console.log('Contribution request completed.');
+          this.logger.log('Contribution request completed.');
         }),
         catchError(error => {
           this.handleError(error);
@@ -41,8 +44,5 @@ export class ContributorService {
 
   private handleError(err: HttpErrorResponse) {
     return throwError(() => new Error("contributor service:" + err.message))
-  }
-
-  constructor(private http: HttpClient) {
   }
 }

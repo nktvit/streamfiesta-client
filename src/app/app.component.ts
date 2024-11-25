@@ -1,13 +1,12 @@
-import { HttpClientModule } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { initFlowbite } from "flowbite";
 
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [HttpClientModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLinkActive],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })

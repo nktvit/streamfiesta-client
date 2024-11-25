@@ -8,6 +8,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NgIf } from '@angular/common';
 import { NotfoundComponent } from '../../components/notfound/notfound.component';
 import {IMovie} from "../../interfaces/IMovie";
+import {LoggerService} from "../../services/logger.service";
 
 @Component({
   selector: 'app-search-page',
@@ -23,20 +24,20 @@ export class SearchPageComponent {
 
   isLoading: boolean = false
 
-  constructor(private movieService: MovieService, private router: Router, private route: ActivatedRoute) { }
+  constructor(private movieService: MovieService, private router: Router, private route: ActivatedRoute, private logger: LoggerService) { }
 
   loadMovies(prompt: string, page: number) {
     this.isLoading = true;
 
     try {
-      console.log("search page", prompt, page);
+      this.logger.log("search page", prompt, page);
 
       this.movieService.searchMovies(prompt, page);
     } catch (error) {
-      console.error('Error during search:', error);
+      this.logger.error('Error during search:', error);
     } finally {
       this.isLoading = false;
-      console.log(this.isLoading);
+      this.logger.log(this.isLoading);
 
     }
   }

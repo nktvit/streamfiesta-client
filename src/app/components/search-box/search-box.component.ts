@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { MovieService } from '../../services/movie.service';
 import { NgIf } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import {LoggerService} from "../../services/logger.service";
 
 @Component({
   selector: 'app-search-box',
@@ -18,7 +19,7 @@ export class SearchBoxComponent {
   isPromptUpdated = false
   isLoading = false;
 
-  constructor(private movieService: MovieService, private route: ActivatedRoute, private router: Router) { }
+  constructor(private movieService: MovieService, private route: ActivatedRoute, private router: Router, private logger: LoggerService) { }
 
   performSearch(prompt: string) {
     if (prompt !== "" && prompt !== this.lastSearchTerm) {
@@ -26,13 +27,13 @@ export class SearchBoxComponent {
       this.lastSearchTerm = prompt
 
       try {
-        console.log("search-box", prompt);
+        this.logger.log("search-box", prompt);
 
         this.movieService.searchMovies(prompt);
         this.router.navigate(['/search'], { queryParams: { query: prompt } });
 
       } catch (error) {
-        console.error('Error during search:', error);
+        this.logger.error('Error during search:', error);
       } finally {
         this.isLoading = false;
       }

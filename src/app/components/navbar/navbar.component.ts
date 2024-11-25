@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { SearchBoxComponent } from '../search-box/search-box.component';
 import { RouterLink, Router } from '@angular/router';
 import { NgClass, NgIf } from '@angular/common';
+import {LoggerService} from "../../services/logger.service";
 
 @Component({
   selector: 'app-navbar',
@@ -15,10 +16,10 @@ export class NavbarComponent implements OnInit {
   isOpenMenu: boolean = false
   currentPage = "/"
 
-  constructor(private router: Router) { }
+  constructor(private router: Router, private logger: LoggerService) { }
 
   ngOnInit(): void {
     this.currentPage = this.router.url
-    console.log(this.currentPage)
+    this.logger.log(this.currentPage)
   }
 }

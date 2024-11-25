@@ -3,6 +3,7 @@ import { RouterLink } from "@angular/router";
 import { DomSanitizer } from "@angular/platform-browser";
 import { IMovie } from "../../interfaces/IMovie";
 import { NgOptimizedImage, NgClass, NgIf } from "@angular/common";
+import {LoggerService} from "../../services/logger.service";
 
 @Component({
   selector: 'app-poster',
@@ -19,33 +20,57 @@ import { NgOptimizedImage, NgClass, NgIf } from "@angular/common";
 export class PosterComponent implements OnInit {
   @Input() movie!: IMovie;
   @Input() size: 'small' | 'medium' | 'large' | undefined;
+  @Input() displayTitle: boolean = false;
 
   isLoading = true;
   imageUrl: string = '';
   placeholderUrl: string = '';
 
-  constructor(private sanitizer: DomSanitizer, private cdr: ChangeDetectorRef) {}
+  constructor(private sanitizer: DomSanitizer, private cdr: ChangeDetectorRef, private logger: LoggerService) {}
+
+  private getPlaceholderUrl(): string {
+    const title = this.movie?.Title || 'No Title';
+    const words = title.split(' ');
+
+    if (words.length <= 3) {
+      return `https://placehold.co/300x440?text=${encodeURIComponent(title)}&font=roboto`;
+    }
+
+    const chunks: string[] = [];
+    let currentChunk: string[] = [];
+
+    words.forEach((word, index) => {
+      currentChunk.push(word);
+      if (currentChunk.length === 3 || index === words.length - 1) {
+        chunks.push(currentChunk.join(' '));
+        currentChunk = [];
+      }
+    });
+
+    const formattedTitle = chunks.join('\\n');
+    return `https://placehold.co/300x440?text=${encodeURIComponent(formattedTitle)}&font=roboto`;
+  }
 
   ngOnInit() {
-    console.log('PosterComponent initialized');
+    this.logger.log('PosterComponent initialized');
     this.updateImageUrl();
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    console.log('ngOnChanges called', changes);
+    this.logger.log('ngOnChanges called', changes);
     if (changes['movie']) {
       this.updateImageUrl();
     }
   }
 
   updateImageUrl() {
-    console.log('updateImageUrl called', this.movie);
+    this.logger.log('updateImageUrl called', this.movie);
     if (this.movie && this.movie.Poster && this.movie.Poster !== 'N/A') {
       this.imageUrl = this.movie.Poster;
-      console.log('Using movie poster URL:', this.imageUrl);
+      this.logger.log('Using movie poster URL:', this.imageUrl);
     } else {
-      this.placeholderUrl = `https://placehold.co/300x440?text=${encodeURIComponent(this.movie?.title || 'No Title')}`;
-      console.log('Using placeholder URL:', this.placeholderUrl);
+      this.placeholderUrl = this.getPlaceholderUrl();
+      this.logger.log('Using placeholder URL:', this.placeholderUrl);
     }
     this.cdr.detectChanges();
   }
@@ -64,15 +89,15 @@ export class PosterComponent implements OnInit {
   }
 
   onImageLoad() {
-    console.log('Image loaded successfully');
+    this.logger.log('Image loaded successfully');
     this.isLoading = false;
     this.cdr.detectChanges();
   }
 
   onImageError() {
-    console.error('Image failed to load');
+    this.logger.error('Image failed to load');
     this.imageUrl = '';
-    this.placeholderUrl = 'https://placehold.co/300x440?text=Image+Not+Available';
+    this.placeholderUrl = this.getPlaceholderUrl();
     this.isLoading = false;
     this.cdr.detectChanges();
   }

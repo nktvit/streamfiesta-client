@@ -7,6 +7,7 @@ import {generateFromString} from 'generate-avatar'
 import {IContributorFetch} from "../../interfaces/IContributorFetch";
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 import {INewContributor} from "../../interfaces/INewContributor";
+import {LoggerService} from "../../services/logger.service";
 
 @Component({
   selector: 'app-donations',
@@ -32,7 +33,7 @@ export class DonationsComponent {
   // Form inputs
   public contributors: IContributorFetch[] = []
 
-  constructor(private _contributorService: ContributorService, private sanitizer: DomSanitizer, private formBuilder: FormBuilder) {
+  constructor(private _contributorService: ContributorService, private sanitizer: DomSanitizer, private formBuilder: FormBuilder, private logger: LoggerService) {
   }
 
   updateContributionInput(event: Event, amount: number) {
@@ -77,8 +78,7 @@ export class DonationsComponent {
           },
           error: error => {
             this.isLoading = false;
-            console.error("Error creating contribution:", error);
-            // Handle the error here (e.g., display an error message to the user)
+            this.logger.error("Error creating contribution:", error);
           }
         });
     }
