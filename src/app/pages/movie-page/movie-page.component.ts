@@ -54,16 +54,19 @@ export class MoviePageComponent {
       tap(details => {
         if (details) {
           this.invalidResponse = false;
-          this.movieDetails = details
+          this.movieDetails = details;
           this.logger.log('Movie details: ', details);
-          // UI logic
+
+          // Only process plot if it exists and isn't 'N/A'
+          if (details.Plot && details.Plot !== 'N/A') {
+            this.adjustedPlot = this.adjustPlot(details.Plot);
+            this.isPlotLong = this.adjustedPlot.length > 300;
+            this.shouldClamp = !this.isFullPlot && this.isPlotLong;
+          }
+
           this.movieDetailsArray = this.movieService.formatMovieDetailsArray(details);
           this.imdbId = this.movieService.getImdbId(details);
           this.type = this.movieService.getMediaType(details);
-
-          this.adjustedPlot = this.adjustPlot(this.movieDetails.Plot);
-          this.isPlotLong = this.adjustedPlot.length > 300;
-          this.shouldClamp = !this.isFullPlot && this.isPlotLong;
         }
       })
     ).subscribe();
@@ -76,14 +79,9 @@ export class MoviePageComponent {
 
   adjustPlot(plot: string): string {
     // Remove trailing comma if it exists
-    if (!plot) {
+    if (!plot || plot === 'N/A') {
       return '';
     }
-
-    let adjusted: string = plot.trim();
-    if (adjusted.endsWith(',')) {
-      adjusted = adjusted.slice(0, -1);
-    }
-    return adjusted;
+    return plot.trim().replace(/,\s*$/, '');
   }
 }

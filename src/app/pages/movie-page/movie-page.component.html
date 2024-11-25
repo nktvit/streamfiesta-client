@@ -11,39 +11,52 @@
       </div>
 
       <div class="md:col-span-8 lg:col-span-9">
-        <h1
-          class="mb-4 text-3xl font-bold text-gray-900 md:text-4xl dark:text-white"
-        >
-          {{ movieDetails.Title }} ({{ movieDetails.Year }})
+        <h1 class="mb-4 text-3xl font-bold text-gray-900 md:text-4xl dark:text-white">
+          {{ movieDetails.Title }}
+          <ng-container *ngIf="movieDetails.Year && movieDetails.Year !== 'N/A'">
+            ({{ movieDetails.Year }})
+          </ng-container>
         </h1>
-        <div class="mb-4 text-sm text-gray-500 dark:text-gray-400">
-          {{ movieDetails.Rated }} | {{ movieDetails.Runtime }}
-          | {{ movieDetails.totalSeasons && movieDetails.totalSeasons }} Seasons |
-          {{ movieDetails.Genre }}
+        <!-- Movie metadata -->
+        <div *ngIf="movieDetails.Rated || movieDetails.Runtime || movieDetails.totalSeasons || movieDetails.Genre"
+             class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+          <ng-container *ngIf="movieDetails.Rated && movieDetails.Rated !== 'N/A'">
+            {{ movieDetails.Rated }} |
+          </ng-container>
+          <ng-container *ngIf="movieDetails.Runtime && movieDetails.Runtime !== 'N/A'">
+            {{ movieDetails.Runtime }} |
+          </ng-container>
+          <ng-container *ngIf="movieDetails.totalSeasons && movieDetails.totalSeasons !== 'N/A'">
+            {{ movieDetails.totalSeasons }} Seasons |
+          </ng-container>
+          <ng-container *ngIf="movieDetails.Genre && movieDetails.Genre !== 'N/A'">
+            {{ movieDetails.Genre }}
+          </ng-container>
         </div>
-        <div class="mb-6 flex space-x-2">
-                    <span
-                      *ngIf="movieDetails.imdbRating"
-                      class="inline-block rounded-full bg-yellow-500 px-3 py-1 text-xs font-semibold text-black"
-                    >IMDb {{ movieDetails.imdbRating }}</span
-                    >
+        <!-- Ratings -->
+        <div class="mb-6 flex flex-wrap gap-2">
+      <span
+        *ngIf="movieDetails.imdbRating && movieDetails.imdbRating !== 'N/A'"
+        class="inline-block rounded-full bg-yellow-500 px-3 py-1 text-xs font-semibold text-black">
+        IMDb {{ movieDetails.imdbRating }}
+      </span>
           <ng-container *ngFor="let rating of movieDetails.Ratings">
-                        <span
-                          *ngIf="rating.Source === 'Rotten Tomatoes'"
-                          class="inline-block rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white"
-                        >
-                            {{ rating.Source }} {{ rating.Value }}
-                        </span>
+        <span
+          *ngIf="rating.Source === 'Rotten Tomatoes' && rating.Value !== 'N/A'"
+          class="inline-block rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white">
+          {{ rating.Source }} {{ rating.Value }}
+        </span>
           </ng-container>
           <span
-            *ngIf="movieDetails.Metascore !== 'N/A'"
-            class="inline-block rounded-full bg-yellow-600 px-3 py-1 text-xs font-semibold text-white"
-          >Metacritic {{ movieDetails.Metascore }}</span
-          >
+            *ngIf="movieDetails.Metascore && movieDetails.Metascore !== 'N/A'"
+            class="inline-block rounded-full bg-yellow-600 px-3 py-1 text-xs font-semibold text-white">
+        Metacritic {{ movieDetails.Metascore }}
+      </span>
         </div>
 
 
-        <div class="mb-6">
+        <!-- Plot section -->
+        <div *ngIf="adjustedPlot" class="mb-6">
           <h2 class="mb-2 text-xl font-semibold text-gray-900 md:text-2xl dark:text-white">
             Plot
           </h2>
@@ -53,38 +66,34 @@
           <button
             *ngIf="isPlotLong"
             class="mt-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
-            (click)="togglePlot()"
-          >
+            (click)="togglePlot()">
             {{ isFullPlot ? 'Show Less' : 'Read More' }}
           </button>
         </div>
 
 
-
-        <div>
-          <h2
-            class="mb-2 text-xl font-semibold text-gray-900 md:text-2xl dark:text-white"
-          >
+        <!-- Details section -->
+        <div *ngIf="movieDetailsArray.length > 0">
+          <h2 class="mb-2 text-xl font-semibold text-gray-900 md:text-2xl dark:text-white">
             Details
           </h2>
           <ng-container *ngFor="let detail of movieDetailsArray">
             <p
               class="text-gray-700 dark:text-gray-300"
-              *ngIf="detail.show"
-            >
-              <strong
-                class="text-sm text-gray-900 dark:text-white"
-              >{{ detail.label }}:</strong
-              >
+              *ngIf="detail.show && detail.value && detail.value !== 'N/A'">
+              <strong class="text-sm text-gray-900 dark:text-white">
+                {{ detail.label }}:
+              </strong>
               {{ detail.value }}
             </p>
           </ng-container>
         </div>
 
-
       </div>
 
     </div>
+    <hr class="h-[0.5px] mt-6 mb-16 bg-gray-200 border-0 dark:bg-gray-700">
+
     <div *ngIf="invalidResponse">
       <p>Error: Unable to fetch movie details.</p>
     </div>
