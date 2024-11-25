@@ -1,0 +1,101 @@
+<main class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+  <app-navbar></app-navbar>
+  <div class="container mx-auto max-w-5xl flex-grow flex flex-col items-center justify-center px-4 my-6">
+      <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="text-center text-3xl font-bold tracking-tight text-gray-900">
+          {{ isSignUp ? 'Create account' : 'Sign in to your account' }}
+        </h2>
+      </div>
+
+      <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form [formGroup]="authForm" (ngSubmit)="onSubmit()" class="space-y-6">
+
+            <div *ngIf="isSignUp">
+              <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+              <div class="mt-1">
+                <input
+                  id="username"
+                  type="text"
+                  formControlName="username"
+                  class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                  [ngClass]="{'border-red-500': isFieldInvalid('username')}"
+                >
+              </div>
+              <p *ngIf="isFieldInvalid('username')" class="mt-2 text-sm text-red-600">
+                Username is required
+              </p>
+            </div>
+
+            <div>
+              <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+              <div class="mt-1">
+                <input
+                  id="email"
+                  type="email"
+                  formControlName="email"
+                  class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                  [ngClass]="{'border-red-500': isFieldInvalid('email')}"
+                >
+              </div>
+              <p *ngIf="isFieldInvalid('email')" class="mt-2 text-sm text-red-600">
+                Valid email is required
+              </p>
+            </div>
+
+            <div>
+              <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+              <div class="mt-1">
+                <input
+                  id="password"
+                  type="password"
+                  formControlName="password"
+                  class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                  [ngClass]="{'border-red-500': isFieldInvalid('password')}"
+                >
+              </div>
+              <p *ngIf="isFieldInvalid('password')" class="mt-2 text-sm text-red-600">
+                Password must be at least 6 characters
+              </p>
+            </div>
+
+            <div *ngIf="errorMessage" class="bg-red-50 p-4 rounded-md">
+              <p class="text-sm text-red-700">{{ errorMessage }}</p>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                [disabled]="authForm.invalid || isSubmitting"
+                class="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-indigo-300"
+              >
+                {{ isSubmitting ? 'Processing...' : (isSignUp ? 'Sign Up' : 'Sign In') }}
+              </button>
+            </div>
+          </form>
+
+          <div class="mt-6">
+            <div class="relative">
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-gray-300"></div>
+              </div>
+              <div class="relative flex justify-center text-sm">
+                <span class="bg-white px-2 text-gray-500">
+                  {{ isSignUp ? 'Already have an account?' : 'Need an account?' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="mt-6 text-center">
+              <button
+                (click)="toggleAuthMode($event)"
+                class="text-indigo-600 hover:text-indigo-500"
+              >
+                {{ isSignUp ? 'Sign In' : 'Sign Up' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</main>

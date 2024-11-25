@@ -1,10 +1,11 @@
-<div
-  [routerLink]="['/movie', movie.imdbID]"
-  class="poster-container group select-none cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105 min-w-16"
-  tabindex="0"
-  [attr.aria-label]="'View details for ' + movie.Title">
+<div class="poster-container group select-none relative min-w-16">
+  <!-- Poster Content -->
+  <div
+    [routerLink]="['/movie', movie.imdbID]"
+    class="poster-content relative w-full h-full cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105"
+    tabindex="0"
+    [attr.aria-label]="'View details for ' + movie.Title">
 
-  <div class="poster-content relative w-full h-full">
     <div class="absolute inset-0 bg-gray-200 animate-pulse" *ngIf="isLoading"></div>
 
     <ng-container *ngIf="imageUrl; else placeholderImage">
@@ -28,7 +29,7 @@
         class="rounded-lg object-cover transition-all duration-300 ease-in-out group-hover:opacity-90"
         [ngClass]="{'opacity-0': isLoading, 'opacity-100': !isLoading}"
         fill
-        >
+      >
     </ng-template>
 
     <div
@@ -38,4 +39,35 @@
     </div>
   </div>
 
+  <!-- Wishlist Button -->
+  <div *ngIf="authService.isLoggedIn()"
+       class="absolute top-2 right-2 z-10">
+    <button
+      (click)="toggleWishlist($event)"
+      [disabled]="isAddingToWishlist"
+      class="p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors duration-200 group/wishlist"
+      [ngClass]="{'animate-pulse': isAddingToWishlist}"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="h-5 w-5 transition-colors duration-200"
+           [ngClass]="{
+                 'text-white hover:text-red-400': !isInWishlist,
+                 'text-red-500 hover:text-red-400': isInWishlist
+               }"
+           fill="none"
+           viewBox="0 0 24 24"
+           stroke="currentColor"
+           [class.fill-current]="isInWishlist">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+        />
+      </svg>
+      <span class="sr-only">
+            {{ isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' }}
+          </span>
+    </button>
+  </div>
 </div>

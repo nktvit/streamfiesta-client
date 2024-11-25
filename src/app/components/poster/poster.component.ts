@@ -1,9 +1,11 @@
-import { Component, Input, ChangeDetectorRef, OnInit, SimpleChanges } from '@angular/core';
-import { RouterLink } from "@angular/router";
-import { DomSanitizer } from "@angular/platform-browser";
-import { IMovie } from "../../interfaces/movie.interface";
-import { NgOptimizedImage, NgClass, NgIf } from "@angular/common";
+import {Component, Input, ChangeDetectorRef, OnInit, SimpleChanges} from '@angular/core';
+import {RouterLink} from "@angular/router";
+import {DomSanitizer} from "@angular/platform-browser";
+import {IMovie} from "../../interfaces/movie.interface";
+import {NgOptimizedImage, NgClass, NgIf} from "@angular/common";
 import {LoggerService} from "../../services/logger.service";
+import {FavoriteMovieService} from "../../services/favorite-movie.service";
+import {AuthService} from "../../services/auth.service";
 
 @Component({
   selector: 'app-poster',
@@ -25,8 +27,93 @@ export class PosterComponent implements OnInit {
   isLoading = true;
   imageUrl: string = '';
   placeholderUrl: string = '';
+  isInWishlist = false;
+  isAddingToWishlist = false;
 
-  constructor(private sanitizer: DomSanitizer, private cdr: ChangeDetectorRef, private logger: LoggerService) {}
+  constructor(
+    private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef,
+    private logger: LoggerService,
+    private favoriteMovieService: FavoriteMovieService,
+    public authService: AuthService
+  ) {
+  }
+
+  ngOnInit() {
+    this.logger.log('PosterComponent initialized');
+    this.updateImageUrl();
+    this.checkWishlistStatus();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    this.logger.log('ngOnChanges called', changes);
+    if (changes['movie']) {
+      this.updateImageUrl();
+      this.checkWishlistStatus();
+    }
+  }
+
+  checkWishlistStatus() {
+    if (this.authService.isLoggedIn()) {
+      this.favoriteMovieService.getFavorites().subscribe({
+        next: (favorites: any[]) => {
+          this.isInWishlist = favorites.some(fav => fav.imdbId === this.movie.imdbID);
+          this.cdr.detectChanges();
+        },
+        error: (error: any) => {
+          this.logger.error('Error checking wishlist status:', error);
+        }
+      });
+    }
+  }
+
+  toggleWishlist(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (this.isAddingToWishlist) return;
+
+    this.isAddingToWishlist = true;
+
+    if (this.isInWishlist) {
+      // Find the favorite movie ID first
+      this.favoriteMovieService.getFavorites().subscribe({
+        next: (favorites: any[]) => {
+          const favorite = favorites.find(fav => fav.imdbId === this.movie.imdbID);
+          if (favorite) {
+            this.favoriteMovieService.removeFromFavorites(favorite._id).subscribe({
+              next: () => {
+                this.isInWishlist = false;
+                this.isAddingToWishlist = false;
+                this.cdr.detectChanges();
+              },
+              error: (error: any) => {
+                this.logger.error('Error removing from wishlist:', error);
+                this.isAddingToWishlist = false;
+                this.cdr.detectChanges();
+              }
+            });
+          }
+        }
+      });
+    } else {
+      this.favoriteMovieService.addToFavorites({
+        imdbId: this.movie.imdbID,
+        title: this.movie.Title
+      }).subscribe({
+        next: () => {
+          this.isInWishlist = true;
+          this.isAddingToWishlist = false;
+          this.cdr.detectChanges();
+        },
+        error: (error: any) => {
+          this.logger.error('Error adding to wishlist:', error);
+          this.isAddingToWishlist = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
 
   private getPlaceholderUrl(): string {
     const title = this.movie?.Title || 'No Title';
@@ -49,18 +136,6 @@ export class PosterComponent implements OnInit {
 
     const formattedTitle = chunks.join('\\n');
     return `https://placehold.co/300x440?text=${encodeURIComponent(formattedTitle)}&font=roboto`;
-  }
-
-  ngOnInit() {
-    this.logger.log('PosterComponent initialized');
-    this.updateImageUrl();
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    this.logger.log('ngOnChanges called', changes);
-    if (changes['movie']) {
-      this.updateImageUrl();
-    }
   }
 
   updateImageUrl() {
