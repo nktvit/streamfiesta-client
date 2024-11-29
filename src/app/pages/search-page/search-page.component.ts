@@ -1,12 +1,12 @@
-import { Component } from '@angular/core';
-import { SearchBoxComponent } from '../../components/search-box/search-box.component';
-import { MoviesGridComponent } from '../../components/movies-grid/movies-grid.component';
-import { MovieService } from '../../services/movie.service';
-import { PaginationComponent } from '../../components/pagination/pagination.component';
-import { NavbarComponent } from '../../components/navbar/navbar.component';
-import { ActivatedRoute, Router } from '@angular/router';
-import { NgIf } from '@angular/common';
-import { NotfoundComponent } from '../../components/notfound/notfound.component';
+import {Component} from '@angular/core';
+import {SearchBoxComponent} from '../../components/search-box/search-box.component';
+import {MoviesGridComponent} from '../../components/movies-grid/movies-grid.component';
+import {MovieService} from '../../services/movie.service';
+import {PaginationComponent} from '../../components/pagination/pagination.component';
+import {NavbarComponent} from '../../components/navbar/navbar.component';
+import {ActivatedRoute, Router} from '@angular/router';
+import {NgIf} from '@angular/common';
+import {NotfoundComponent} from '../../components/notfound/notfound.component';
 import {IMovie} from "../../interfaces/movie.interface";
 import {LoggerService} from "../../services/logger.service";
 
@@ -24,22 +24,22 @@ export class SearchPageComponent {
 
   isLoading: boolean = false
 
-  constructor(private movieService: MovieService, private router: Router, private route: ActivatedRoute, private logger: LoggerService) { }
+  constructor(private movieService: MovieService, private router: Router, private route: ActivatedRoute, private logger: LoggerService) {
+  }
 
   loadMovies(prompt: string, page: number) {
     this.isLoading = true;
 
-    try {
-      this.logger.log("search page", prompt, page);
-
-      this.movieService.searchMovies(prompt, page);
-    } catch (error) {
-      this.logger.error('Error during search:', error);
-    } finally {
-      this.isLoading = false;
-      this.logger.log(this.isLoading);
-
-    }
+    this.movieService.searchMovies(prompt, page)
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+        },
+        error: (error) => {
+          this.logger.error('Error during search:', error);
+          this.isLoading = false;
+        }
+      });
   }
 
   ngOnInit(): void {
@@ -65,7 +65,7 @@ export class SearchPageComponent {
   onPageChange(page: number): void {
     // Assuming the search box or another component triggers searchMovies in the service
     this.loadMovies(this.movieService.currentQuery, page);
-    this.router.navigate(['/search'], { queryParams: { page }, queryParamsHandling: 'merge' });
+    this.router.navigate(['/search'], {queryParams: {page}, queryParamsHandling: 'merge'});
     this.currentPage = page
   }
 }
