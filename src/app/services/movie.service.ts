@@ -30,38 +30,34 @@ export class MovieService {
   }
 
 
-  searchMovies(searchTerm: string, page: number = 1): void {
-
+  searchMovies(searchTerm: string, page: number = 1): Observable<any> {
     this.currentQuery = searchTerm;
     const url = `https://www.omdbapi.com/?apikey=${this.API_KEY}&s=${encodeURIComponent(searchTerm)}&page=${page}`;
-    this.http.get<any>(url).subscribe({
-      next: (response) => {
+
+    return this.http.get<any>(url).pipe(
+      tap(response => {
         if (response && response.Search) {
           this.searchResults.next(response.Search);
           this.currentPageSource.next(page);
           this.totalResultsSource.next(response.totalResults);
-
         } else {
           this.searchResults.next([]);
           this.totalResultsSource.next(0);
-
         }
-      },
-      error: (error) => {
+      }),
+      catchError(error => {
         this.logger.error('Error fetching data: ', error);
         this.searchResults.next([]);
-      }
-    });
+        return of(null);
+      })
+    );
   }
 
   getMovieDetails(movieId: string): Observable<any> {
-    // Reset the movieDetailsSubject before fetching new movie details
-    this.movieDetailsSubject.next(null);
-
     return this.fetchMovieDetails(movieId).pipe(
       tap((response) => {
         if (response) {
-          this.router.navigate(['/movie', movieId]);
+          this.movieDetailsSubject.next(response);
         }
       }),
       catchError((error) => {

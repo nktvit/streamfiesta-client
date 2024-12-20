@@ -5,7 +5,7 @@ import {NgClass, NgFor, NgIf, NgOptimizedImage} from '@angular/common';
 import {NavbarComponent} from '../../components/navbar/navbar.component';
 import {BackButtonComponent} from '../../components/back-button/back-button.component';
 import {MoviePlayerComponent} from "../../components/movie-player/movie-player.component";
-import {catchError, finalize, of, switchMap, tap} from "rxjs";
+import {catchError, of, switchMap, tap} from "rxjs";
 import {PosterComponent} from "../../components/poster/poster.component";
 import {LoggerService} from "../../services/logger.service";
 
@@ -17,7 +17,7 @@ import {LoggerService} from "../../services/logger.service";
   styleUrl: './movie-page.component.css'
 })
 export class MoviePageComponent {
-  isLoading = false;
+  isLoading = true;
   invalidResponse: boolean = false;
   isFullPlot = false;
   shouldClamp = false;
@@ -29,19 +29,17 @@ export class MoviePageComponent {
   protected type: string = 'movie';
   protected imdbId: any;
 
-  constructor(private movieService: MovieService, private route: ActivatedRoute, private logger: LoggerService) {
-  }
-
+  constructor(private movieService: MovieService, private route: ActivatedRoute, private logger: LoggerService) {}
 
   ngOnInit() {
+    this.isLoading = true;  // Set loading at start
+
     this.route.paramMap.pipe(
       switchMap(params => {
         const id = params.get('id');
         if (id !== null) {
           this.movieId = id;
-          this.isLoading = true;
           return this.movieService.getMovieDetails(this.movieId).pipe(
-            finalize(() => this.isLoading = false),
             catchError((error) => {
               this.logger.error('Error fetching movie details: ', error);
               this.invalidResponse = true;
@@ -57,7 +55,6 @@ export class MoviePageComponent {
           this.movieDetails = details;
           this.logger.log('Movie details: ', details);
 
-          // Only process plot if it exists and isn't 'N/A'
           if (details.Plot && details.Plot !== 'N/A') {
             this.adjustedPlot = this.adjustPlot(details.Plot);
             this.isPlotLong = this.adjustedPlot.length > 300;
@@ -68,6 +65,7 @@ export class MoviePageComponent {
           this.imdbId = this.movieService.getImdbId(details);
           this.type = this.movieService.getMediaType(details);
         }
+        this.isLoading = false;
       })
     ).subscribe();
   }

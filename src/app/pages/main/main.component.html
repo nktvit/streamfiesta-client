@@ -2,19 +2,34 @@
   <app-navbar class="z-10"></app-navbar>
 
   <section class="container mx-auto px-4 mt-12 flex flex-col items-center text-center space-y-6">
-    <h1 class="text-4xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-6xl">Discover Your Next<br/>Movie
+    <h1 class="text-3xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-6xl">Discover Your Next<br/>Movie
       Obsession</h1>
-    <p class="text-lg text-gray-500 dark:text-gray-300 max-w-3xl">
+    <p class="sm:text-lg text-gray-500 dark:text-gray-300 max-w-3xl">
       Unleash a world of captivating stories and unforgettable characters. Our massive library holds virtually every
       English-language movie imaginable, from timeless classics to the latest blockbusters.
     </p>
     <app-search-box class="w-full max-w-xl"></app-search-box>
   </section>
 
-  <section class="@container mx-auto px-12 my-16 w-full lg:w-[80%] xl:w-[60%] 2xl:max-w-[1000px]">
-    <div class="flex flex-col space-y-3 justify-center sm:flex-row sm:space-y-0 sm:space-x-2 w-full">
-      <app-poster *ngFor="let movie of featuredMovies" [movie]="movie">
-      </app-poster>
+  <section class="@container mx-auto px-4 md:px-12 my-8 md:my-16 w-full lg:w-[80%] xl:w-[60%] 2xl:max-w-[1000px]">
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-2 lg:gap-2.5 xl:gap-4 w-full">
+      <div class="col-span-1">
+        <app-poster [movie]="featuredMovies[0]"></app-poster>
+      </div>
+      <div class="col-span-1 md:order-4 md:col-span-3  border-2 border-rose-500/60 dark:border-slate-800/60 p-0.5 rounded-lg">
+        <div class="bg-rose-500 dark:bg-slate-800 rounded flex justify-center items-center h-full min-h-[50px] p-4">
+          <span class="text-white font-medium sm:text-lg">
+          Access to over <strong>500,000+</strong> movies from IMDb's complete database!
+        </span>
+        </div>
+
+      </div>
+      <div class="col-span-1">
+        <app-poster [movie]="featuredMovies[1]"></app-poster>
+      </div>
+      <div class="col-span-1">
+        <app-poster [movie]="featuredMovies[2]"></app-poster>
+      </div>
     </div>
   </section>
 </main>
