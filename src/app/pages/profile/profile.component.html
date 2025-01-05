@@ -1,0 +1,27 @@
+<main class="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
+  <app-navbar [showSearchBox]="true"></app-navbar>
+
+  <div class="mx-auto w-full max-w-5xl px-4 md:px-6 py-8">
+    <ng-container *ngIf="auth.user$ | async as user">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex flex-col items-center md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-6">
+        <img
+          [src]="user.picture"
+          alt="Profile picture"
+          class="w-24 h-24 rounded-full object-cover border-4 border-blue-500 shadow-lg"
+        />
+        <div class="flex flex-col items-center md:items-start">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ user.name }}</h2>
+          <p class="text-gray-600 dark:text-gray-300 mt-1">{{ user.email }}</p>
+
+          <div class="mt-4 flex space-x-4">
+            <div class="text-center md:text-left">
+              <p class="text-sm text-gray-500 dark:text-gray-400">Member since</p>
+              <!--              <p class="font-medium text-gray-900 dark:text-white">{{user.created_at}}</p>-->
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</main>

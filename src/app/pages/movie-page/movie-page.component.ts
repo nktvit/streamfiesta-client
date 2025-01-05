@@ -1,7 +1,7 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {MovieService} from '../../services/movie.service';
 import {ActivatedRoute} from '@angular/router';
-import {NgClass, NgFor, NgIf, NgOptimizedImage} from '@angular/common';
+import {NgClass, NgFor, NgIf} from '@angular/common';
 import {NavbarComponent} from '../../components/navbar/navbar.component';
 import {BackButtonComponent} from '../../components/back-button/back-button.component';
 import {MoviePlayerComponent} from "../../components/movie-player/movie-player.component";
@@ -12,11 +12,11 @@ import {LoggerService} from "../../services/logger.service";
 @Component({
   selector: 'app-movie-page',
   standalone: true,
-  imports: [NgIf, NgFor, NavbarComponent, BackButtonComponent, NgClass, NgOptimizedImage, MoviePlayerComponent, PosterComponent],
+  imports: [NgIf, NgFor, NavbarComponent, BackButtonComponent, NgClass, MoviePlayerComponent, PosterComponent],
   templateUrl: './movie-page.component.html',
   styleUrl: './movie-page.component.css'
 })
-export class MoviePageComponent {
+export class MoviePageComponent implements OnInit {
   isLoading = true;
   invalidResponse: boolean = false;
   isFullPlot = false;

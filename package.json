@@ -27,6 +27,7 @@
     "@angular/platform-browser": "^19.0.0",
     "@angular/platform-browser-dynamic": "^19.0.0",
     "@angular/router": "^19.0.0",
+    "@auth0/auth0-angular": "^2.2.3",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/typography": "^0.5.15",
     "flowbite": "^2.5.2",

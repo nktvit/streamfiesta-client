@@ -1,9 +1,6 @@
 import {Component} from '@angular/core';
-import {MoviesGridComponent} from '../../components/movies-grid/movies-grid.component';
 import {SearchBoxComponent} from '../../components/search-box/search-box.component';
 import {NavbarComponent} from '../../components/navbar/navbar.component';
-import {JsonPipe, NgForOf, NgOptimizedImage} from "@angular/common";
-import {RouterLink} from "@angular/router";
 import {MatMonthView} from "@angular/material/datepicker";
 import {PosterComponent} from "../../components/poster/poster.component";
 import {IMovie} from "../../interfaces/movie.interface";
@@ -13,7 +10,7 @@ import {IMovie} from "../../interfaces/movie.interface";
   standalone: true,
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
-  imports: [SearchBoxComponent, MoviesGridComponent, NavbarComponent, NgForOf, RouterLink, JsonPipe, NgOptimizedImage, PosterComponent]
+  imports: [SearchBoxComponent, NavbarComponent, PosterComponent]
 })
 export class MainComponent {
 

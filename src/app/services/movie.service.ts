@@ -95,6 +95,7 @@ export class MovieService {
     }
     return '';
   }
+
   getMediaType(movieDetails: any): string {
     if (movieDetails.Type === 'movie') return 'movie'
     else if (movieDetails.Type === 'series') return 'tv'
@@ -102,22 +103,18 @@ export class MovieService {
       return 'movie'
     }
   }
+
   formatMovieDetailsArray(details: any) {
     return [
-      { label: 'Director', value: details.Director, show: details.Director && details.Director !== 'N/A' },
-      { label: 'Country', value: details.Country, show: details.Country && details.Country !== 'N/A' },
-      { label: 'Language', value: details.Language, show: details.Language && details.Language !== 'N/A' },
-      { label: 'Writers', value: details.Writer, show: details.Writer && details.Writer !== 'N/A' },
-      { label: 'Stars', value: details.Actors, show: true },
-      { label: 'Awards', value: details.Awards, show: details.Awards && details.Awards !== 'N/A' },
-      { label: 'Box Office', value: details.BoxOffice, show: details.BoxOffice && details.BoxOffice !== 'N/A' },
+      {label: 'Director', value: details.Director, show: details.Director && details.Director !== 'N/A'},
+      {label: 'Country', value: details.Country, show: details.Country && details.Country !== 'N/A'},
+      {label: 'Language', value: details.Language, show: details.Language && details.Language !== 'N/A'},
+      {label: 'Writers', value: details.Writer, show: details.Writer && details.Writer !== 'N/A'},
+      {label: 'Stars', value: details.Actors, show: true},
+      {label: 'Awards', value: details.Awards, show: details.Awards && details.Awards !== 'N/A'},
+      {label: 'Box Office', value: details.BoxOffice, show: details.BoxOffice && details.BoxOffice !== 'N/A'},
     ];
   }
 
 }
-
-
-
-
-
 

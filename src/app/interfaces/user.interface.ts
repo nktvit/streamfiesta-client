@@ -1,11 +1,6 @@
-// interfaces/user.interface.ts
 export interface IUser {
-  _id?: string;
-  username: string;
-  email: string;
-  password: string;
+  auth0Id: string;
 }
-
 export interface IAuthResponse {
   user: IUser;
   token: string;

@@ -1,4 +1,4 @@
-<header class="flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-white text-sm py-4 dark:bg-gray-800">
+<header class="flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-white text-sm py-3 dark:bg-gray-800">
   <nav class="max-w-[85rem] w-full mx-auto px-4 flex flex-wrap basis-full items-center justify-between"
        aria-label="Global">
     <!-- Logo -->
@@ -44,8 +44,7 @@
   'font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500': currentPage !== '/about'}"
            [routerLink]="['/about']">About</a>
 
-        <!-- Auth Section -->
-        <ng-container *ngIf="(authService.user$ | async) as user; else authLinks">
+        <ng-container *ngIf="(auth.isLoggedIn$ | async)">
           <!-- Wishlist Button -->
           <a [routerLink]="['/wishlist']"
              class="inline-flex items-center gap-x-2 text-gray-600 hover:text-gray-400 dark:text-gray-400">
@@ -64,17 +63,18 @@
 
           <!-- User Menu -->
           <div class="relative group">
-            <button class="flex items-center gap-2 font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400">
-              <span>{{ user.username }}</span>
-
+            <button [routerLink]="['/profile']" class="flex items-center gap-2 font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400">
+              <ng-container *ngIf="auth.user$ | async as user">
+                <img
+                  [src]="user.picture"
+                  alt="Profile picture"
+                  class="w-10 h-10 rounded-full object-cover mr-2"
+                />
+              </ng-container>
             </button>
             <div
               class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-700 hidden group-hover:block z-50">
               <div class="py-1">
-                <a [routerLink]="['/profile']"
-                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600">
-                  Profile
-                </a>
                 <a [routerLink]="['/wishlist']"
                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 sm:hidden">
                   Wishlist
@@ -83,34 +83,32 @@
             </div>
           </div>
 
-          <!-- Logout Button -->
           <button
-          (click)="logout()"
-          class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent
+            (click)="this.logout()"
+            class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent
           text-red-600 hover:text-red-800 dark:text-red-500 dark:hover:text-red-400">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               class="h-5 w-5"
-               fill="none"
-               viewBox="0 0 24 24"
-               stroke="currentColor">
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-          </svg>
-          <span class="hidden sm:inline">Logout</span>
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="h-5 w-5"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke="currentColor">
+              <path stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            <span class="hidden sm:inline">Logout</span>
           </button>
         </ng-container>
 
-        <!-- Auth Links for Non-authenticated Users -->
-        <ng-template #authLinks>
-          <a [routerLink]="['/auth']"
-             [ngClass]="{'font-medium text-blue-500': currentPage === '/auth',
-  'font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400': currentPage !== '/auth'}"
-             class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600">
-            Sign in
-          </a>
-        </ng-template>
+        <ng-container *ngIf="!(auth.isLoggedIn$ | async)">
+          <button
+            class="inline-flex items-center gap-x-2 text-sm font-semibold text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400"
+            (click)="login()">Log in</button>
+          <button
+            class="inline-flex items-center gap-x-2 text-sm font-semibold text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400"
+            (click)="signup()">Sign Up</button>
+        </ng-container>
       </div>
     </div>
   </nav>

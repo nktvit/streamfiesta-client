@@ -1,5 +1,4 @@
-import {Component} from '@angular/core';
-import {SearchBoxComponent} from '../../components/search-box/search-box.component';
+import {Component, OnInit} from '@angular/core';
 import {MoviesGridComponent} from '../../components/movies-grid/movies-grid.component';
 import {MovieService} from '../../services/movie.service';
 import {PaginationComponent} from '../../components/pagination/pagination.component';
@@ -13,11 +12,11 @@ import {LoggerService} from "../../services/logger.service";
 @Component({
   selector: 'app-search-page',
   standalone: true,
-  imports: [SearchBoxComponent, MoviesGridComponent, PaginationComponent, NavbarComponent, NgIf, NotfoundComponent],
+  imports: [MoviesGridComponent, PaginationComponent, NavbarComponent, NgIf, NotfoundComponent],
   templateUrl: './search-page.component.html',
   styleUrl: './search-page.component.css'
 })
-export class SearchPageComponent {
+export class SearchPageComponent implements OnInit {
   movies: IMovie[] = [];
   totalResults: number = 0;
   currentPage: number = 1;
@@ -63,7 +62,6 @@ export class SearchPageComponent {
   }
 
   onPageChange(page: number): void {
-    // Assuming the search box or another component triggers searchMovies in the service
     this.loadMovies(this.movieService.currentQuery, page);
     this.router.navigate(['/search'], {queryParams: {page}, queryParamsHandling: 'merge'});
     this.currentPage = page

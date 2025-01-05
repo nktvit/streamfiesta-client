@@ -1,7 +1,7 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { SearchBoxComponent } from '../search-box/search-box.component';
-import { RouterLink, Router } from '@angular/router';
-import {AsyncPipe, NgClass, NgIf} from '@angular/common';
+import {Component, Inject, Input, OnInit} from '@angular/core';
+import {SearchBoxComponent} from '../search-box/search-box.component';
+import {RouterLink, Router} from '@angular/router';
+import {AsyncPipe, DOCUMENT, NgClass, NgIf} from '@angular/common';
 import {LoggerService} from "../../services/logger.service";
 import {AuthService} from "../../services/auth.service";
 
@@ -20,15 +20,23 @@ export class NavbarComponent implements OnInit {
   constructor(
     private router: Router,
     private logger: LoggerService,
-    public authService: AuthService
-  ) { }
+    public auth: AuthService,
+  ) {
+  }
 
   ngOnInit(): void {
     this.currentPage = this.router.url;
     this.logger.log(this.currentPage);
   }
 
-  logout(): void {
-    this.authService.logout();
+
+  logout() {
+    this.auth.logout();
+  }
+  login() {
+    this.auth.login();
+  }
+  signup() {
+    this.auth.signup()
   }
 }

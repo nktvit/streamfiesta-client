@@ -4,11 +4,12 @@ import {SearchPageComponent} from './pages/search-page/search-page.component';
 import {MoviePageComponent} from './pages/movie-page/movie-page.component';
 import {AboutComponent} from './pages/about/about.component';
 import {DonationsComponent} from "./pages/donations/donations.component";
-import {AuthComponent} from "./pages/auth/auth.component";
 import {FavoritesComponent} from "./pages/favorites/favorites.component";
-import {AuthGuard} from "./guards/auth.guard";
+import {AuthGuard} from "@auth0/auth0-angular";
+import {ProfileComponent} from "./pages/profile/profile.component";
 
 export const routes: Routes = [
+
   {
     path: 'home',
     component: MainComponent,
@@ -20,10 +21,6 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
-    path: 'auth',
-    component: AuthComponent
-  },
-  {
     path: 'search',
     component: SearchPageComponent,
     data: {mode: 'search'}
@@ -33,9 +30,15 @@ export const routes: Routes = [
     component: AboutComponent
   },
   {
+    path: 'profile',
+    component: ProfileComponent,
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'wishlist',
     component: FavoritesComponent,
-    canActivate: [AuthGuard]},
+    canActivate: [AuthGuard]
+  },
   {
     path: 'donations',
     component: DonationsComponent

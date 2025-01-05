@@ -1,25 +1,29 @@
-import {Component, Input, ChangeDetectorRef, OnInit, SimpleChanges} from '@angular/core';
-import {RouterLink} from "@angular/router";
-import {DomSanitizer} from "@angular/platform-browser";
-import {IMovie} from "../../interfaces/movie.interface";
-import {NgOptimizedImage, NgClass, NgIf} from "@angular/common";
-import {LoggerService} from "../../services/logger.service";
-import {FavoriteMovieService} from "../../services/favorite-movie.service";
-import {AuthService} from "../../services/auth.service";
+import {
+  Component,
+  Input,
+  ChangeDetectorRef,
+  OnInit,
+  OnDestroy,
+  ChangeDetectionStrategy
+} from '@angular/core';
+import {RouterLink} from '@angular/router';
+import {IMovie} from '../../interfaces/movie.interface';
+import {NgOptimizedImage, NgClass, NgIf, AsyncPipe} from '@angular/common';
+import {LoggerService} from '../../services/logger.service';
+import {UserService} from '../../services/user.service';
+import {AuthService} from '../../services/auth.service';
+import {combineLatest, distinctUntilChanged, EMPTY, map, Subject, Subscription, takeUntil} from 'rxjs';
+import {catchError, switchMap, take} from 'rxjs/operators';
 
 @Component({
   selector: 'app-poster',
   standalone: true,
-  imports: [
-    RouterLink,
-    NgOptimizedImage,
-    NgClass,
-    NgIf
-  ],
+  imports: [RouterLink, NgOptimizedImage, NgClass, NgIf, AsyncPipe],
   templateUrl: './poster.component.html',
-  styleUrl: './poster.component.css'
+  styleUrl: './poster.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PosterComponent implements OnInit {
+export class PosterComponent implements OnInit, OnDestroy {
   @Input() movie!: IMovie;
   @Input() size: 'small' | 'medium' | 'large' | undefined;
   @Input() displayTitle: boolean = false;
@@ -27,94 +31,97 @@ export class PosterComponent implements OnInit {
   isLoading = true;
   imageUrl: string = '';
   placeholderUrl: string = '';
-  isInWishlist = false;
-  isAddingToWishlist = false;
+  isInWatchlist = false;
+  isAddingToWatchlist = false;
+
+  private watchlistStateSubscription?: Subscription;
+
+  private destroy$ = new Subject<void>();
+  private movieId: string = '';
 
   constructor(
-    private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
-    private favoriteMovieService: FavoriteMovieService,
-    public authService: AuthService
+    private userService: UserService,
+    public auth: AuthService
   ) {
   }
 
   ngOnInit() {
-    this.logger.log('PosterComponent initialized');
     this.updateImageUrl();
-    this.checkWishlistStatus();
+    this.movieId = this.movie.imdbID;
+    this.initializeWatchlistState();
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    this.logger.log('ngOnChanges called', changes);
-    if (changes['movie']) {
-      this.updateImageUrl();
-      this.checkWishlistStatus();
-    }
+  ngOnDestroy() {
+    this.watchlistStateSubscription?.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  checkWishlistStatus() {
-    if (this.authService.isLoggedIn()) {
-      this.favoriteMovieService.getFavorites().subscribe({
-        next: (favorites: any[]) => {
-          this.isInWishlist = favorites.some(fav => fav.imdbId === this.movie.imdbID);
-          this.cdr.detectChanges();
-        },
-        error: (error: any) => {
-          this.logger.error('Error checking wishlist status:', error);
-        }
-      });
-    }
+  private initializeWatchlistState(): void {
+    this.watchlistStateSubscription = combineLatest([
+      this.auth.isAuthenticated$(),
+      this.userService.watchlist$
+    ]).pipe(
+      takeUntil(this.destroy$),
+      distinctUntilChanged((prev, curr) =>
+        prev[0] === curr[0] &&
+        JSON.stringify(prev[1]) === JSON.stringify(curr[1])
+      ),
+      map(([isAuthenticated, watchlist]) => {
+        if (!isAuthenticated) return false;
+        return watchlist.includes(this.movieId);
+      })
+    ).subscribe(isInList => {
+      if (this.isInWatchlist !== isInList) {
+        this.isInWatchlist = isInList;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
-  toggleWishlist(event: Event) {
+  /**
+   * Toggle the movie in the user's watchlist.
+   * @param event
+   */
+  toggleWatchlist(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
 
-    if (this.isAddingToWishlist) return;
+    if (this.isAddingToWatchlist) return;
 
-    this.isAddingToWishlist = true;
+    this.isAddingToWatchlist = true;
 
-    if (this.isInWishlist) {
-      // Find the favorite movie ID first
-      this.favoriteMovieService.getFavorites().subscribe({
-        next: (favorites: any[]) => {
-          const favorite = favorites.find(fav => fav.imdbId === this.movie.imdbID);
-          if (favorite) {
-            this.favoriteMovieService.removeFromFavorites(favorite._id).subscribe({
-              next: () => {
-                this.isInWishlist = false;
-                this.isAddingToWishlist = false;
-                this.cdr.detectChanges();
-              },
-              error: (error: any) => {
-                this.logger.error('Error removing from wishlist:', error);
-                this.isAddingToWishlist = false;
-                this.cdr.detectChanges();
-              }
-            });
-          }
+    this.auth.isAuthenticated$().pipe(
+      take(1),
+      switchMap(isAuthenticated => {
+        if (!isAuthenticated) {
+          this.auth.login();
+          return EMPTY;
         }
-      });
-    } else {
-      this.favoriteMovieService.addToFavorites({
-        imdbId: this.movie.imdbID,
-        title: this.movie.Title
-      }).subscribe({
-        next: () => {
-          this.isInWishlist = true;
-          this.isAddingToWishlist = false;
-          this.cdr.detectChanges();
-        },
-        error: (error: any) => {
-          this.logger.error('Error adding to wishlist:', error);
-          this.isAddingToWishlist = false;
-          this.cdr.detectChanges();
-        }
-      });
-    }
+
+        return this.isInWatchlist
+          ? this.userService.removeFromWatchlist(this.movieId)
+          : this.userService.addToWatchlist(this.movieId);
+      })
+    ).subscribe({
+      next: () => {
+        this.isAddingToWatchlist = false;
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.logger.error('Error updating watchlist:', error);
+        this.isAddingToWatchlist = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
+  /**
+   * Get the placeholder URL for the movie poster.
+   * @returns The placeholder URL.
+   */
   private getPlaceholderUrl(): string {
     const title = this.movie?.Title || 'No Title';
     const words = title.split(' ');
@@ -138,7 +145,10 @@ export class PosterComponent implements OnInit {
     return `https://placehold.co/300x440?text=${encodeURIComponent(formattedTitle)}&font=roboto`;
   }
 
-  updateImageUrl() {
+  /**
+   * Update the image URL for the movie poster.
+   */
+  updateImageUrl(): void {
     this.logger.log('updateImageUrl called', this.movie);
     if (this.movie && this.movie.Poster && this.movie.Poster !== 'N/A') {
       this.imageUrl = this.movie.Poster;
@@ -150,6 +160,10 @@ export class PosterComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  /**
+   * Get the CSS classes for the poster size.
+   * @returns The CSS classes.
+   */
   get sizeClasses(): string {
     switch (this.size) {
       case 'small':
@@ -163,13 +177,19 @@ export class PosterComponent implements OnInit {
     }
   }
 
-  onImageLoad() {
+  /**
+   * Handle the image load event.
+   */
+  onImageLoad(): void {
     this.logger.log('Image loaded successfully');
     this.isLoading = false;
     this.cdr.detectChanges();
   }
 
-  onImageError() {
+  /**
+   * Handle the image error event.
+   */
+  onImageError(): void {
     this.logger.error('Image failed to load');
     this.imageUrl = '';
     this.placeholderUrl = this.getPlaceholderUrl();

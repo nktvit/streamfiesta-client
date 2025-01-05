@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { Router } from '@angular/router';
-import {environment} from "../../environments/environment";
+import { Inject, Injectable } from '@angular/core';
+import {BehaviorSubject, Observable, from, throwError, Subscription} from 'rxjs';
+import { AuthService as Auth0, User } from '@auth0/auth0-angular';
+import { DOCUMENT } from '@angular/common';
+import { LoggerService } from './logger.service';
 
 export interface IUser {
   _id: string;
@@ -12,55 +11,104 @@ export interface IUser {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/v1/users';
-  private userSubject = new BehaviorSubject<IUser | null>(null);
+  private userSubject = new BehaviorSubject<User | null>(null);
+  private isLoggedInSubject = new BehaviorSubject<boolean>(false);
+
   user$ = this.userSubject.asObservable();
+  isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
   constructor(
-    private http: HttpClient,
-    private router: Router
+    private logger: LoggerService,
+    private auth: Auth0,
+    @Inject(DOCUMENT) public document: Document
   ) {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      this.userSubject.next(JSON.parse(savedUser));
-    }
-  }
-
-  createUser(userData: { username: string; email: string; password: string }): Observable<IUser> {
-    return this.http.post<IUser>(this.apiUrl, userData).pipe(
-      tap(user => {
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('isAuthenticated', 'true');
+    this.auth.user$.subscribe((user) => {
+      if (user) {
+        this.logger.log('Auth0 User ID:', user.sub);
+        this.logger.log('User Profile:', user);
         this.userSubject.next(user);
-      })
-    );
+      } else {
+        this.userSubject.next(null);
+      }
+    });
+
+    this.auth.isAuthenticated$.subscribe((isAuthenticated) => {
+      this.isLoggedInSubject.next(isAuthenticated);
+      this.logger.log('User is logged in:', isAuthenticated);
+    });
   }
 
-  getUserByEmail(email: string): Observable<IUser> {
-    return this.http.get<IUser>(`${this.apiUrl}/email/${email}`).pipe(
-      tap(user => {
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('isAuthenticated', 'true');
-        this.userSubject.next(user);
-      })
-    );
-  }
-  getCurrentUserId(): string {
-    const user = this.userSubject.value;
-    return user?._id || '';
-  }
-
+  /**
+   * Log out the user and redirect to the home page.
+   */
   logout(): void {
-    localStorage.removeItem('user');
-    localStorage.removeItem('isAuthenticated');
-    this.userSubject.next(null);
-    this.router.navigate(['/auth']);
+    this.auth.logout({
+      logoutParams: {
+        returnTo: this.document.location.origin,
+      },
+    });
   }
 
-  isLoggedIn(): boolean {
-    return localStorage.getItem('isAuthenticated') === 'true';
+  /**
+   * Redirect the user to the Auth0 login page.
+   */
+  login(): void {
+    this.auth.loginWithRedirect();
+  }
+
+  /**
+   * Redirect the user to the Auth0 signup page.
+   */
+  signup(): void {
+    this.auth.loginWithRedirect({
+      authorizationParams: {
+        screen_hint: 'signup',
+      },
+    });
+  }
+
+  /**
+   * Get the access token silently.
+   * @returns Observable<string> - The access token.
+   */
+  getAccessToken(): Subscription {
+    return this.auth.getAccessTokenSilently().subscribe((token) => {
+      this.logger.log('Access Token:', token);
+      return token;
+    });
+  }
+
+  /**
+   * Check if the user is authenticated.
+   * @returns Observable<boolean> - True if the user is authenticated, false otherwise.
+   */
+  isAuthenticated$(): Observable<boolean> {
+    return this.auth.isAuthenticated$;
+  }
+
+  /**
+   * Get the current user.
+   * @returns Observable<User | null> - The current user or null if not authenticated.
+   */
+  getUser$(): Observable<User | null> {
+    // @ts-ignore
+    return this.auth.user$;
+  }
+
+  /**
+   * Decode a JWT token (for debugging purposes only).
+   * @param token - The JWT token.
+   * @returns any - The decoded token payload.
+   */
+  private decodeToken(token: string): any {
+    try {
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch (error) {
+      this.logger.error('Error decoding token:', error);
+      return null;
+    }
   }
 }
