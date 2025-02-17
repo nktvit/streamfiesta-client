@@ -78,7 +78,7 @@
 
               <!-- Other Platforms -->
               <span
-                *ngIf="rating.Source !== 'Rotten Tomatoes' && rating.Source !== 'Metacritic' && rating.Value !== 'N/A'"
+                *ngIf="rating.Source !== 'Rotten Tomatoes' && rating.Source !== 'Metacritic' && rating.Source !== 'Internet Movie Database' && rating.Value !== 'N/A'"
                 class="inline-flex items-center rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-500 transition-colors">
       {{ rating.Source }} {{ rating.Value }}
     </span>
