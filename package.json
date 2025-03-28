@@ -1,6 +1,6 @@
 {
-  "name": "movie-streamer",
-  "version": "0.0.0",
+  "name": "streamfiesta-client",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
     "config": "ts-node ./src/assets/scripts/setEnv.ts",
@@ -30,7 +30,7 @@
     "@auth0/auth0-angular": "^2.2.3",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/typography": "^0.5.15",
-    "flowbite": "^2.5.2",
+    "flowbite": "^3.1.2",
     "generate-avatar": "^1.4.10",
     "ng-process-env": "^16.0.6",
     "rxjs": "~7.8.1",
