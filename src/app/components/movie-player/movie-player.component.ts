@@ -31,6 +31,10 @@ export class MoviePlayerComponent implements OnChanges {
       return null;
     }
 
+    // TODO: replace with a better player
+    // example of url: https://www.NontonGo.win/embed/movie/tt0111161
+    // const baseUrl = 'http://localhost:3000/https://www.NontonGo.win/embed';
+
     const baseUrl = 'https://vidsrc.me/embed';
     const embedUrl = `${baseUrl}/${this.type}/${this.imdbId}`;
 
