@@ -1,4 +1,4 @@
-import { NgClass, NgFor, NgIf } from '@angular/common';
+import { NgIf } from '@angular/common';
 import { Component, EventEmitter, Input, Output, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatPaginatorModule } from '@angular/material/paginator';
@@ -7,7 +7,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-pagination',
   standalone: true,
-  imports: [NgIf, NgFor, NgClass, MatPaginatorModule],
+  imports: [NgIf, MatPaginatorModule],
   templateUrl: './pagination.component.html',
   styleUrls: ['./pagination.component.css'],
 })

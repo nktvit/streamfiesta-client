@@ -1,5 +1,4 @@
 import {Component} from '@angular/core';
-import {SearchBoxComponent} from '../../components/search-box/search-box.component';
 import {MoviesGridComponent} from '../../components/movies-grid/movies-grid.component';
 import {MovieService} from '../../services/movie.service';
 import {PaginationComponent} from '../../components/pagination/pagination.component';
@@ -13,7 +12,7 @@ import {LoggerService} from "../../services/logger.service";
 @Component({
   selector: 'app-search-page',
   standalone: true,
-  imports: [SearchBoxComponent, MoviesGridComponent, PaginationComponent, NavbarComponent, NgIf, NotfoundComponent],
+  imports: [MoviesGridComponent, PaginationComponent, NavbarComponent, NgIf, NotfoundComponent],
   templateUrl: './search-page.component.html',
   styleUrl: './search-page.component.css'
 })
