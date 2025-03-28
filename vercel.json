@@ -6,6 +6,5 @@
       "maxDuration": 15
     }
   },
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist/streamfiesta"
+  "buildCommand": "npm run build"
 }
