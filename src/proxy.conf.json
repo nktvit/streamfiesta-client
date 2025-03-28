@@ -1,10 +1,19 @@
 {
-  "/api": {
+  "/media": {
     "target": "https://vidsrc.me",
     "secure": true,
     "changeOrigin": true,
     "pathRewrite": {
-      "^/api": ""
+      "^/media": ""
     }
+  },
+  "/api/suggestions": {
+    "target": "https://www.omdbapi.com",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/suggestions": ""
+    },
+    "logLevel": "debug"
   }
 }

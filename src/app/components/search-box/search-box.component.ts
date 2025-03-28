@@ -108,13 +108,52 @@ export class SearchBoxComponent implements OnInit, OnDestroy {
     this.isLoadingSuggestions = true;
 
     try {
-      // Get base URL from window.location or environment
-      const apiUrl = `${environment.VERCEL_URL || ''}/api/suggestions?q=${encodeURIComponent(term)}`;
+      const apiKey = environment.OMDB_API_KEY;
+      let suggestions = [];
 
-      const response = await fetch(apiUrl);
-      const data = await response.json();
+      // Direct OMDB API call as fallback for development
+      if (!environment.production && process.env['NODE_ENV'] !== 'vercel') {
+        try {
+          const directResponse = await fetch(
+            `https://www.omdbapi.com/?apikey=${apiKey}&s=${encodeURIComponent(term)}`
+          );
+          const data = await directResponse.json();
 
-      this.suggestions = data.suggestions || [];
+          if (data.Response === 'True') {
+            suggestions = data.Search.map((item: { imdbID: any; Title: any; Year: any; Type: any; Poster: string; }) => ({
+              id: item.imdbID,
+              title: item.Title,
+              year: item.Year,
+              type: item.Type,
+              poster: item.Poster !== 'N/A' ? item.Poster : null
+            })).slice(0, 5);
+          }
+        } catch (directError) {
+          this.logger.error('Direct OMDB API call failed:', directError);
+          // Continue to try the proxy approach as fallback
+        }
+      } else {
+        // Try the API endpoint (either proxied locally or Vercel function in prod)
+        const apiUrl = `/api/suggestions?apikey=${apiKey}&s=${encodeURIComponent(term)}`;
+
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        if (data.suggestions) {
+          suggestions = data.suggestions;
+        } else if (data.Response === 'True') {
+          // Handle direct OMDB response format if our proxy just passes it through
+          suggestions = data.Search.map((item: { imdbID: any; Title: any; Year: any; Type: any; Poster: string; }) => ({
+            id: item.imdbID,
+            title: item.Title,
+            year: item.Year,
+            type: item.Type,
+            poster: item.Poster !== 'N/A' ? item.Poster : null
+          })).slice(0, 5);
+        }
+      }
+
+      this.suggestions = suggestions;
       this.showSuggestions = this.suggestions.length > 0;
       this.selectedSuggestionIndex = -1;
     } catch (error) {
