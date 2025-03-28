@@ -3,11 +3,8 @@
   "functions": {
     "api/suggestions.ts": {
       "memory": 1024,
-      "maxDuration": 10
+      "maxDuration": 15
     }
-  },
-  "env": {
-    "OMDB_API_KEY": "@OMDB_API_KEY"
   },
   "buildCommand": "npm run build",
   "outputDirectory": "dist/streamfiesta"
