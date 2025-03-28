@@ -166,9 +166,11 @@ export class SearchBoxComponent implements OnInit, OnDestroy {
   }
 
   selectSuggestion(suggestion: SearchSuggestion) {
-    this.searchTerm = suggestion.title;
+    // It finds proper suggestion
+    // with correct naming
+    // so we can just redirect
     this.hideSuggestions();
-    this.performSearch(suggestion.title);
+    this.router.navigate(['/movie', suggestion.id]);
   }
 
   hideSuggestions() {
