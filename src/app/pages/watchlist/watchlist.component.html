@@ -1,0 +1,82 @@
+<main class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+  <app-navbar [showSearchBox]="true"></app-navbar>
+
+  <div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6 dark:text-white">Your Watchlist</h1>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+      <div class="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && watchlist.length === 0" class="py-12 text-center">
+      <div class="text-gray-500 dark:text-gray-400 mb-4">
+        Your watchlist is empty.
+      </div>
+      <a [routerLink]="['/']" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
+        Discover Movies
+      </a>
+    </div>
+
+    <!-- Watchlist Content -->
+    <div *ngIf="!isLoading && watchlist.length > 0">
+      <!-- Filters -->
+      <div class="mb-6 flex flex-wrap gap-2">
+        <button
+          (click)="applyFilter('all')"
+          class="px-4 py-2 rounded-full text-sm font-medium"
+          [ngClass]="{'bg-blue-600 text-white': currentFilter === 'all', 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300': currentFilter !== 'all'}"
+        >
+          All ({{ watchlist.length }})
+        </button>
+        <button
+          (click)="applyFilter(WatchStatus.NOT_WATCHED)"
+          class="px-4 py-2 rounded-full text-sm font-medium"
+          [ngClass]="{'bg-blue-600 text-white': currentFilter === WatchStatus.NOT_WATCHED, 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300': currentFilter !== WatchStatus.NOT_WATCHED}"
+        >
+          Not Watched ({{ getCountByStatus(WatchStatus.NOT_WATCHED) }})
+        </button>
+        <button
+          (click)="applyFilter(WatchStatus.IN_PROGRESS)"
+          class="px-4 py-2 rounded-full text-sm font-medium"
+          [ngClass]="{'bg-blue-600 text-white': currentFilter === WatchStatus.IN_PROGRESS, 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300': currentFilter !== WatchStatus.IN_PROGRESS}"
+        >
+          In Progress ({{ getCountByStatus(WatchStatus.IN_PROGRESS) }})
+        </button>
+        <button
+          (click)="applyFilter(WatchStatus.WATCHED)"
+          class="px-4 py-2 rounded-full text-sm font-medium"
+          [ngClass]="{'bg-blue-600 text-white': currentFilter === WatchStatus.WATCHED, 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300': currentFilter !== WatchStatus.WATCHED}"
+        >
+          Watched ({{ getCountByStatus(WatchStatus.WATCHED) }})
+        </button>
+      </div>
+
+      <!-- Movies Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div *ngFor="let item of filteredWatchlist" class="relative">
+          <app-poster *ngIf="item.movie" [movie]="item.movie" [displayTitle]="true"></app-poster>
+
+          <!-- Fallback if movie details couldn't be loaded -->
+          <div *ngIf="!item.movie" class="aspect-[2/3] bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+            <div class="text-center p-4">
+              <p class="text-gray-500 dark:text-gray-400">{{ item.imdbID }}</p>
+              <p class="text-sm text-gray-400 dark:text-gray-500">Failed to load details</p>
+            </div>
+          </div>
+
+          <!-- Status Badge -->
+          <div class="absolute bottom-0 right-0 m-2 z-10 px-2 py-1 text-xs font-medium rounded-full"
+               [ngClass]="{
+                 'bg-yellow-500 text-white': item.status === WatchStatus.NOT_WATCHED,
+                 'bg-blue-500 text-white': item.status === WatchStatus.IN_PROGRESS,
+                 'bg-green-500 text-white': item.status === WatchStatus.WATCHED
+               }">
+            {{ getStatusText(item.status) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

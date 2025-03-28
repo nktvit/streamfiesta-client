@@ -28,8 +28,55 @@
         class="rounded-lg object-cover transition-all duration-300 ease-in-out group-hover:opacity-90"
         [ngClass]="{'opacity-0': isLoading, 'opacity-100': !isLoading}"
         fill
-        >
+      >
     </ng-template>
+
+    <!-- Watchlist Button -->
+    <div *ngIf="pbManager.isAuthenticated && showWatchlistButton"
+         class="absolute top-2 right-2 z-10"
+         (click)="toggleWatchlist($event)">
+      <button
+        class="p-2 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70 transition-all"
+        [ngClass]="{'text-red-500': isInWatchlist, 'text-white': !isInWatchlist}">
+
+        <!-- Loading Spinner -->
+        <svg *ngIf="addingToWatchlist" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+
+        <!-- Heart Icon (Filled or Outline) -->
+        <svg *ngIf="!addingToWatchlist" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+          <path *ngIf="isInWatchlist" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          <path *ngIf="!isInWatchlist" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Status Options (only visible when watchlist item is hovered) -->
+    <div *ngIf="pbManager.isAuthenticated && isInWatchlist && showWatchlistButton"
+         class="absolute top-12 right-2 z-10 bg-black bg-opacity-70 rounded-md py-1 px-2 hidden group-hover:block">
+      <div class="flex flex-col space-y-1 text-xs text-white">
+        <button
+          (click)="updateWatchStatus($event, WatchStatus.NOT_WATCHED)"
+          class="p-1 hover:bg-gray-700 rounded transition"
+          [ngClass]="{'font-bold': currentStatus === WatchStatus.NOT_WATCHED}">
+          Not Watched
+        </button>
+        <button
+          (click)="updateWatchStatus($event, WatchStatus.IN_PROGRESS)"
+          class="p-1 hover:bg-gray-700 rounded transition"
+          [ngClass]="{'font-bold': currentStatus === WatchStatus.IN_PROGRESS}">
+          In Progress
+        </button>
+        <button
+          (click)="updateWatchStatus($event, WatchStatus.WATCHED)"
+          class="p-1 hover:bg-gray-700 rounded transition"
+          [ngClass]="{'font-bold': currentStatus === WatchStatus.WATCHED}">
+          Watched
+        </button>
+      </div>
+    </div>
 
     <div
       *ngIf="displayTitle"
@@ -37,5 +84,4 @@
       <span class="text-white text-xs sm:text-base lg:text-md font-semibold line-clamp-3">{{ movie.Title }}</span>
     </div>
   </div>
-
 </div>

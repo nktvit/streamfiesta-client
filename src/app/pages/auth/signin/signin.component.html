@@ -1,0 +1,61 @@
+<main class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+  <app-navbar></app-navbar>
+
+  <div class="container mx-auto max-w-md py-8 px-4">
+    <h1 class="text-2xl font-bold mb-6 text-center dark:text-white">Sign In</h1>
+
+    <form [formGroup]="signinForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <!-- Email -->
+      <div>
+        <label for="email" class="block mb-2 text-sm font-medium dark:text-white">Email</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          class="w-full p-3 rounded-lg"
+          [ngClass]="{'border-red-500': email?.invalid && (email?.dirty || email?.touched)}"
+        >
+        <div *ngIf="email?.invalid && (email?.dirty || email?.touched)" class="text-red-500 text-sm mt-1">
+          <div *ngIf="email?.errors?.['required']">Email is required</div>
+          <div *ngIf="email?.errors?.['email']">Please enter a valid email</div>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label for="password" class="block mb-2 text-sm font-medium dark:text-white">Password</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          class="w-full p-3 rounded-lg"
+          [ngClass]="{'border-red-500': password?.invalid && (password?.dirty || password?.touched)}"
+        >
+        <div *ngIf="password?.invalid && (password?.dirty || password?.touched)" class="text-red-500 text-sm mt-1">
+          <div *ngIf="password?.errors?.['required']">Password is required</div>
+          <div *ngIf="password?.errors?.['minlength']">Password must be at least 6 characters</div>
+        </div>
+      </div>
+
+      <!-- Error message -->
+      <div *ngIf="errorMessage" class="text-red-500 text-center">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Submit button -->
+      <button
+        type="submit"
+        [disabled]="signinForm.invalid || isLoading"
+        class="w-full p-3 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+      >
+        <span *ngIf="isLoading" class="inline-block animate-spin mr-2">⟳</span>
+        Sign In
+      </button>
+
+      <!-- Sign up link -->
+      <div class="text-center text-sm dark:text-white">
+        Don't have an account? <a [routerLink]="['/signup']" class="underline text-blue-600 hover:text-blue-800">Sign Up</a>
+      </div>
+    </form>
+  </div>
+</main>

@@ -33,6 +33,7 @@
     "flowbite": "^3.1.2",
     "generate-avatar": "^1.4.10",
     "ng-process-env": "^16.0.6",
+    "pocketbase": "^0.25.2",
     "rxjs": "~7.8.1",
     "tslib": "^2.8.1",
     "zone.js": "~0.15.0"

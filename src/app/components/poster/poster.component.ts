@@ -3,7 +3,9 @@ import { RouterLink } from "@angular/router";
 import { DomSanitizer } from "@angular/platform-browser";
 import { IMovie } from "../../interfaces/movie.interface";
 import { NgOptimizedImage, NgClass, NgIf } from "@angular/common";
-import {LoggerService} from "../../services/logger.service";
+import { LoggerService } from "../../services/logger.service";
+import { WatchlistService, WatchStatus } from "../../services/watchlist.service";
+import {PbManagerService} from "../../services/pbmanager.service"
 
 @Component({
   selector: 'app-poster',
@@ -21,12 +23,25 @@ export class PosterComponent implements OnInit {
   @Input() movie!: IMovie;
   @Input() size: 'small' | 'medium' | 'large' | undefined;
   @Input() displayTitle: boolean = false;
+  @Input() showWatchlistButton: boolean = true;
 
   isLoading = true;
   imageUrl: string = '';
   placeholderUrl: string = '';
+  isInWatchlist = false;
+  addingToWatchlist = false;
 
-  constructor(private sanitizer: DomSanitizer, private cdr: ChangeDetectorRef, private logger: LoggerService) {}
+  // Define WatchStatus for template usage
+  WatchStatus = WatchStatus;
+  currentStatus: WatchStatus = WatchStatus.NOT_WATCHED;
+
+  constructor(
+    private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef,
+    private logger: LoggerService,
+    private watchlistService: WatchlistService,
+    public pbManager: PbManagerService
+  ) {}
 
   private getPlaceholderUrl(): string {
     const title = this.movie?.Title || 'No Title';
@@ -54,12 +69,105 @@ export class PosterComponent implements OnInit {
   ngOnInit() {
     this.logger.log('PosterComponent initialized');
     this.updateImageUrl();
+    this.checkWatchlistStatus();
   }
 
   ngOnChanges(changes: SimpleChanges) {
     this.logger.log('ngOnChanges called', changes);
     if (changes['movie']) {
       this.updateImageUrl();
+      this.checkWatchlistStatus();
+    }
+  }
+
+  /**
+   * Check if this movie is in the user's watchlist
+   */
+  private checkWatchlistStatus() {
+    if (!this.pbManager.isAuthenticated) {
+      this.isInWatchlist = false;
+      return;
+    }
+
+    const watchlistItem = this.watchlistService.getWatchlistItem(this.movie.imdbID);
+    this.isInWatchlist = !!watchlistItem;
+
+    if (watchlistItem) {
+      this.currentStatus = watchlistItem.status;
+    } else {
+      this.currentStatus = WatchStatus.NOT_WATCHED;
+    }
+  }
+
+  /**
+   * Toggle watchlist status for this movie
+   */
+  async toggleWatchlist(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.pbManager.isAuthenticated) {
+      // Could show a message or redirect to login
+      return;
+    }
+
+    this.addingToWatchlist = true;
+
+    try {
+      if (this.isInWatchlist) {
+        await this.watchlistService.removeFromWatchlist(this.movie.imdbID);
+        this.isInWatchlist = false;
+      } else {
+        await this.watchlistService.addToWatchlist(
+          this.movie.imdbID,
+          WatchStatus.NOT_WATCHED
+        );
+        this.isInWatchlist = true;
+      }
+      this.checkWatchlistStatus();
+    } catch (error) {
+      this.logger.error('Error updating watchlist:', error);
+    } finally {
+      this.addingToWatchlist = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  /**
+   * Update watchlist status for this movie
+   */
+  async updateWatchStatus(event: Event, status: WatchStatus) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.pbManager.isAuthenticated) {
+      return;
+    }
+
+    this.addingToWatchlist = true;
+
+    try {
+      const watchlistItem = this.watchlistService.getWatchlistItem(this.movie.imdbID);
+
+      if (watchlistItem) {
+        // Update existing item
+        await this.watchlistService.updateStatus(this.movie.imdbID, status);
+      } else {
+        // Add new item with specified status
+        await this.watchlistService.addToWatchlist(
+          this.movie.imdbID,
+          status
+        );
+      }
+
+      this.currentStatus = status;
+      this.isInWatchlist = true;
+      this.checkWatchlistStatus();
+    } catch (error) {
+      this.logger.error('Error updating watch status:', error);
+    } finally {
+      this.addingToWatchlist = false;
+      this.cdr.detectChanges();
     }
   }
 

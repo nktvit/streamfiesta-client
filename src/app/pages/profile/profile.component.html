@@ -1,0 +1,128 @@
+<!-- src/app/pages/profile/profile.component.html -->
+<main class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+  <app-navbar></app-navbar>
+
+  <div class="container mx-auto max-w-3xl py-8 px-4">
+    <h1 class="text-2xl font-bold mb-6 dark:text-white">Your Profile</h1>
+
+    <div *ngIf="refreshingAuth" class="flex justify-center items-center py-8">
+      <div class="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+      <span class="ml-2 text-gray-600 dark:text-gray-300">Refreshing profile data...</span>
+    </div>
+
+    <div *ngIf="!refreshingAuth && user" class="space-y-8">
+      <!-- User Info -->
+      <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
+        <div class="flex-shrink-0">
+          <!-- User avatar with fallback to first letter of username -->
+          <div class="w-32 h-32 rounded-full flex items-center justify-center text-4xl font-bold bg-blue-500 text-white">
+            <span>{{ user['name'].charAt(0).toUpperCase() }}</span>
+          </div>
+        </div>
+
+        <div class="flex-grow space-y-2">
+          <h2 class="text-xl font-semibold dark:text-white">{{ user['name'] }}</h2>
+          <p class="text-gray-600 dark:text-gray-400">{{ user['email'] }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-500">Member since {{ user['created'] | date }}</p>
+
+          <!-- Verification Status -->
+          <div *ngIf="isVerified" class="flex items-center text-green-600 dark:text-green-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <span>Email verified</span>
+          </div>
+
+          <div *ngIf="!isVerified" class="space-y-2">
+            <div class="flex items-center text-yellow-600 dark:text-yellow-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+              </svg>
+              <span>Email not verified</span>
+            </div>
+
+            <div>
+              <button
+                type="button"
+                (click)="resendVerification()"
+                class="py-2 px-4 text-sm font-medium rounded-lg bg-blue-500 text-white hover:bg-blue-600"
+              >
+                Resend Verification Email
+              </button>
+
+              <div *ngIf="verificationSent" class="mt-2 text-green-600 dark:text-green-400 text-sm">
+                Verification email sent! Please check your inbox.
+              </div>
+
+              <div *ngIf="verificationError" class="mt-2 text-red-600 dark:text-red-400 text-sm">
+                {{ verificationError }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Edit Form -->
+      <div>
+        <h3 class="text-lg font-semibold mb-4 dark:text-white">Edit Profile Information</h3>
+
+        <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <!-- Username -->
+          <div>
+            <label for="username" class="block mb-2 text-sm font-medium dark:text-white">Username</label>
+            <input
+              type="text"
+              id="username"
+              formControlName="username"
+              class="w-full p-3 rounded-lg"
+              [ngClass]="{'border-red-500': username?.invalid && (username?.dirty || username?.touched)}"
+            >
+            <div *ngIf="username?.invalid && (username?.dirty || username?.touched)" class="text-red-500 text-sm mt-1">
+              <div *ngIf="username?.errors?.['required']">Username is required</div>
+              <div *ngIf="username?.errors?.['minlength']">Username must be at least 3 characters</div>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label for="email" class="block mb-2 text-sm font-medium dark:text-white">Email</label>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              class="w-full p-3 rounded-lg"
+              [ngClass]="{'border-red-500': email?.invalid && (email?.dirty || email?.touched)}"
+            >
+            <div *ngIf="email?.invalid && (email?.dirty || email?.touched)" class="text-red-500 text-sm mt-1">
+              <div *ngIf="email?.errors?.['required']">Email is required</div>
+              <div *ngIf="email?.errors?.['email']">Please enter a valid email</div>
+            </div>
+          </div>
+
+          <!-- Success and Error messages -->
+          <div *ngIf="saveSuccess" class="text-green-500 text-center">
+            Profile updated successfully!
+          </div>
+
+          <div *ngIf="errorMessage" class="text-red-500 text-center">
+            {{ errorMessage }}
+          </div>
+
+          <!-- Submit button -->
+          <div class="flex gap-4">
+            <button
+              type="submit"
+              [disabled]="profileForm.invalid || isLoading"
+              class="px-6 py-3 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              <span *ngIf="isLoading" class="inline-block animate-spin mr-2">⟳</span>
+              Save Changes
+            </button>
+
+            <app-logout-button></app-logout-button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>

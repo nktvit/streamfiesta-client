@@ -1,0 +1,110 @@
+<main class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+  <app-navbar></app-navbar>
+
+  <div class="container mx-auto max-w-md py-8 px-4">
+    <h1 class="text-2xl font-bold mb-6 text-center dark:text-white">Create an Account</h1>
+
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <!-- Username -->
+      <div>
+        <label for="username" class="block mb-2 text-sm font-medium dark:text-white">Username</label>
+        <input
+          type="text"
+          id="username"
+          formControlName="username"
+          class="w-full p-3 rounded-lg"
+          [ngClass]="{'border-red-500': username?.invalid && (username?.dirty || username?.touched)}"
+        >
+        <div *ngIf="username?.invalid && (username?.dirty || username?.touched)" class="text-red-500 text-sm mt-1">
+          <div *ngIf="username?.errors?.['required']">Username is required</div>
+          <div *ngIf="username?.errors?.['minlength']">Username must be at least 3 characters</div>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label for="email" class="block mb-2 text-sm font-medium dark:text-white">Email</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          class="w-full p-3 rounded-lg"
+          [ngClass]="{'border-red-500': email?.invalid && (email?.dirty || email?.touched)}"
+        >
+        <div *ngIf="email?.invalid && (email?.dirty || email?.touched)" class="text-red-500 text-sm mt-1">
+          <div *ngIf="email?.errors?.['required']">Email is required</div>
+          <div *ngIf="email?.errors?.['email']">Please enter a valid email</div>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label for="password" class="block mb-2 text-sm font-medium dark:text-white">Password</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          class="w-full p-3 rounded-lg"
+          [ngClass]="{'border-red-500': password?.invalid && (password?.dirty || password?.touched)}"
+        >
+        <div *ngIf="password?.invalid && (password?.dirty || password?.touched)" class="text-red-500 text-sm mt-1">
+          <div *ngIf="password?.errors?.['required']">Password is required</div>
+          <div *ngIf="password?.errors?.['minlength']">Password must be at least 8 characters</div>
+        </div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div>
+        <label for="passwordConfirm" class="block mb-2 text-sm font-medium dark:text-white">Confirm Password</label>
+        <input
+          type="password"
+          id="passwordConfirm"
+          formControlName="passwordConfirm"
+          class="w-full p-3 rounded-lg"
+          [ngClass]="{'border-red-500': passwordConfirm?.invalid && (passwordConfirm?.dirty || passwordConfirm?.touched)}"
+        >
+        <div *ngIf="passwordConfirm?.invalid && (passwordConfirm?.dirty || passwordConfirm?.touched)" class="text-red-500 text-sm mt-1">
+          <div *ngIf="passwordConfirm?.errors?.['required']">Please confirm your password</div>
+          <div *ngIf="passwordConfirm?.errors?.['passwordMismatch']">Passwords do not match</div>
+        </div>
+      </div>
+
+      <!-- Error message -->
+      <div *ngIf="errorMessage" class="text-red-500 text-center">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Success message -->
+      <div *ngIf="successMessage" class="text-green-500 text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+        {{ successMessage }}
+      </div>
+
+      <!-- Submit button -->
+      <button
+        *ngIf="!showVerificationSent"
+        type="submit"
+        [disabled]="signupForm.invalid || isLoading"
+        class="w-full p-3 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+      >
+        <span *ngIf="isLoading" class="inline-block animate-spin mr-2">⟳</span>
+        Sign Up
+      </button>
+
+      <!-- Go to profile button after registration -->
+      <div *ngIf="showVerificationSent" class="space-y-4">
+        <button
+          type="button"
+          (click)="router.navigate(['/profile'])"
+          class="w-full p-3 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700"
+        >
+          Go to Profile
+        </button>
+      </div>
+
+      <!-- Sign in link -->
+      <div class="text-center text-sm dark:text-white">
+        Already have an account? <a [routerLink]="['/signin']" class="underline text-blue-600 hover:text-blue-800">Sign In</a>
+      </div>
+    </form>
+  </div>
+</main>

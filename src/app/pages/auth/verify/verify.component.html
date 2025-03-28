@@ -1,0 +1,49 @@
+<main class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+  <app-navbar></app-navbar>
+
+  <div class="container mx-auto max-w-md py-8 px-4">
+    <h1 class="text-2xl font-bold mb-6 text-center dark:text-white">Email Verification</h1>
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="text-center p-8">
+      <div class="inline-block h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-300">Verifying your email...</p>
+    </div>
+
+    <!-- Success state -->
+    <div *ngIf="!isLoading && verificationSuccess" class="p-8 bg-green-50 dark:bg-green-900/20 rounded-lg text-center space-y-4">
+      <div class="text-green-500 text-5xl">✓</div>
+      <h2 class="text-xl font-semibold text-green-700 dark:text-green-400">Email Verified Successfully!</h2>
+      <p class="text-gray-600 dark:text-gray-300">Your email has been verified. You can now enjoy all features of our platform.</p>
+      <div class="pt-4">
+        <button
+          [routerLink]="['/profile']"
+          class="px-6 py-3 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700"
+        >
+          Go to Profile
+        </button>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div *ngIf="!isLoading && !verificationSuccess" class="p-8 bg-red-50 dark:bg-red-900/20 rounded-lg text-center space-y-4">
+      <div class="text-red-500 text-5xl">×</div>
+      <h2 class="text-xl font-semibold text-red-700 dark:text-red-400">Verification Failed</h2>
+      <p class="text-gray-600 dark:text-gray-300">{{ errorMessage }}</p>
+      <div class="pt-4 space-y-3">
+        <button
+          [routerLink]="['/profile']"
+          class="px-6 py-3 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 block w-full"
+        >
+          Go to Profile
+        </button>
+        <button
+          [routerLink]="['/']"
+          class="px-6 py-3 rounded-lg font-medium bg-gray-600 text-white hover:bg-gray-700 block w-full"
+        >
+          Go to Homepage
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
