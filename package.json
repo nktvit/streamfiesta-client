@@ -30,6 +30,8 @@
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/typography": "^0.5.15",
     "@vercel/analytics": "^1.5.0",
+    "@vercel/kv": "^3.0.0",
+    "@vercel/node": "^5.1.14",
     "flowbite": "^3.1.2",
     "generate-avatar": "^1.4.10",
     "ng-process-env": "^16.0.6",

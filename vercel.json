@@ -1,6 +1,14 @@
 {
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "version": 2,
+  "functions": {
+    "api/suggestions.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "OMDB_API_KEY": "@omdb_api_key"
+  },
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/streamfiesta"
 }

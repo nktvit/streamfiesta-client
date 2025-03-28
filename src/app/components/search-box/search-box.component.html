@@ -1,17 +1,19 @@
 <div class="flex h-full justify-center">
-  <form action="" class="m-auto" (submit)="handleSubmit($event)">
-    <label for="hs-trailing-button-add-on-with-icon-and-button" class="sr-only">Label</label>
+  <form action="" class="m-auto relative" (submit)="handleSubmit($event)">
+    <label for="hs-trailing-button-add-on-with-icon-and-button" class="sr-only">Search</label>
     <div class="relative flex rounded-lg shadow-sm">
       <input
         (input)="handleInput($event)"
         (focus)="handleFocus()"
         (blur)="handleFocusOut()"
+        (keydown)="handleKeydown($event)"
         [value]="searchTerm"
         type="text"
         id="hs-trailing-button-add-on-with-icon-and-button"
         [placeholder]="placeholder"
         [disabled]="isLoading"
         name="hs-trailing-button-add-on-with-icon-and-button"
+        autocomplete="off"
         class="py-3 px-4 ps-11 block w-full border-gray-200 shadow-sm rounded-s-lg text-sm
                 focus:z-10 focus:border-blue-500 focus:ring-blue-500
                 disabled:opacity-50 disabled:pointer-events-none
@@ -36,6 +38,48 @@
                 </span>
         Search
       </button>
+    </div>
+
+    <!-- Suggestions Dropdown -->
+    <div *ngIf="showSuggestions && isFocused"
+         class="absolute left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+      <!-- Loading indicator -->
+      <div *ngIf="isLoadingSuggestions" class="flex items-center justify-center p-4">
+        <div class="animate-spin inline-block w-5 h-5 border-2 border-current border-t-transparent text-blue-600 rounded-full" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+        <span class="ml-2 text-gray-600 dark:text-gray-300">Loading suggestions...</span>
+      </div>
+
+      <!-- Suggestions list -->
+      <ul *ngIf="!isLoadingSuggestions && suggestions.length > 0">
+        <li *ngFor="let suggestion of suggestions; let i = index"
+            (mousedown)="selectSuggestion(suggestion)"
+            [ngClass]="{'bg-blue-50 dark:bg-gray-700': i === selectedSuggestionIndex}"
+            class="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
+
+          <!-- Poster thumbnail (if available) -->
+          <div class="flex-shrink-0 w-10 h-14 mr-3 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
+            <img *ngIf="suggestion.poster" [src]="suggestion.poster" [alt]="suggestion.title" class="w-full h-full object-cover">
+            <div *ngIf="!suggestion.poster" class="w-full h-full flex items-center justify-center text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Title and year -->
+          <div class="flex-grow">
+            <div class="font-medium text-gray-800 dark:text-white">{{ suggestion.title }}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">{{ suggestion.year }} · {{ suggestion.type | titlecase }}</div>
+          </div>
+        </li>
+      </ul>
+
+      <!-- No results -->
+      <div *ngIf="!isLoadingSuggestions && suggestions.length === 0" class="p-4 text-center text-gray-500 dark:text-gray-400">
+        No results found for "{{ searchTerm }}"
+      </div>
     </div>
   </form>
 </div>

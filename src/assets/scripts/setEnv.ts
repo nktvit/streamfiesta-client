@@ -52,7 +52,8 @@ export const environment = {
   production: ${isProduction},
   OMDB_API_KEY: ${sanitizeEnvVar(process.env.OMDB_API_KEY)},
   USE_STATIC_DATA: ${sanitizeEnvVar(process.env.USE_STATIC_DATA)},
-  BACKEND_URL: ${sanitizeEnvVar(process.env.BACKEND_URL)}
+  BACKEND_URL: ${sanitizeEnvVar(process.env.BACKEND_URL)},
+  VERCEL_URL: ""
 };
 `;
 
