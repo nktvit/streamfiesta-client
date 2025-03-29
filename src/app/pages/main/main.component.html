@@ -1,34 +1,91 @@
-<main class="bg-gradient-to-b from-gray-100 to-gray-50 dark:from-gray-900 dark:to-black min-h-screen flex flex-col">
-  <app-navbar class="z-10"></app-navbar>
+<main
+  class="bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-black min-h-screen flex flex-col">
+  <app-navbar class="z-10 sticky top-0"></app-navbar>
 
-  <section class="container mx-auto px-4 mt-12 flex flex-col items-center text-center space-y-6">
-    <h1 class="text-3xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-6xl">Discover Your Next<br/>Movie
-      Obsession</h1>
-    <p class="sm:text-lg text-gray-500 dark:text-gray-300 max-w-3xl">
+  <section
+    class="container mx-auto px-4 pt-8 md:pt-16 pb-8 flex flex-col items-center text-center space-y-6 md:space-y-8">
+    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white leading-tight">
+      Discover Your Next<br/> <span
+      class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">Movie Obsession</span>
+    </h1>
+    <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
       Unleash a world of captivating stories and unforgettable characters. Our massive library holds virtually every
       English-language movie imaginable, from timeless classics to the latest blockbusters.
     </p>
-    <app-search-box class="w-full max-w-xl"></app-search-box>
+    <app-search-box
+      class="w-full max-w-xl mt-4 transition-all duration-300 hover:scale-[1.02] focus-within:scale-[1.02]"></app-search-box>
   </section>
 
-  <section class="@container mx-auto px-4 md:px-12 my-8 md:my-16 w-full lg:w-[80%] xl:w-[60%] 2xl:max-w-[1000px]">
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-2 lg:gap-2.5 xl:gap-4 w-full">
-      <div class="col-span-1">
-        <app-poster [movie]="featuredMovies[0]"></app-poster>
-      </div>
-      <div class="col-span-1 md:order-4 md:col-span-3  border-2 border-blue-500/60 dark:border-slate-800/60 p-0.5 rounded-lg">
-        <div class="bg-blue-500 dark:bg-slate-800 rounded flex justify-center items-center h-full min-h-[50px] p-4">
-          <span class="text-white font-medium sm:text-lg">
-          Access to over <strong>500,000+</strong> movies from IMDb's complete database!
-        </span>
-        </div>
+  <section class="container mx-auto px-4 sm:px-6 md:px-8 my-8 md:my-12 lg:my-16 w-full max-w-2xl">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4 w-full">
 
+      <!-- Featured movie 1 -->
+      <div
+        class="col-span-1 sm:col-span-2 transition-transform duration-300 hover:scale-[1.03] focus-within:scale-[1.03]">
+        <app-poster [movie]="featuredMovies[0]"
+                    class="h-full w-full rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"></app-poster>
       </div>
-      <div class="col-span-1">
-        <app-poster [movie]="featuredMovies[1]"></app-poster>
+
+      <!-- Featured movie 2 -->
+      <div
+        class="col-span-1 sm:col-span-2 transition-transform duration-300 hover:scale-[1.03] focus-within:scale-[1.03]">
+        <app-poster [movie]="featuredMovies[1]"
+                    class="h-full w-full rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"></app-poster>
       </div>
-      <div class="col-span-1">
-        <app-poster [movie]="featuredMovies[2]"></app-poster>
+
+      <!-- Promotional banner - repositioned for better flow -->
+      <div
+        class="col-span-2 sm:col-span-4 order-last sm:order-none my-2 sm:my-3 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-800 rounded-lg shadow-lg transform transition-all duration-300 hover:shadow-xl">
+        <div class="flex justify-center items-center h-full py-4 px-6 sm:py-5 sm:px-8">
+          <span class="text-white font-medium text-base sm:text-lg md:text-xl lg:text-2xl text-center">
+            Access to over <strong class="font-bold">500,000+</strong> movies<br/>from IMDb's complete database!
+          </span>
+        </div>
+      </div>
+
+      <!-- Featured movie 3 -->
+      <div
+        class="col-span-1 sm:col-span-2 transition-transform duration-300 hover:scale-[1.03] focus-within:scale-[1.03]">
+        <app-poster [movie]="featuredMovies[2]"
+                    class="h-full w-full rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"></app-poster>
+      </div>
+
+      <!-- Featured movie 4 -->
+      <div
+        class="col-span-1 sm:col-span-2 transition-transform duration-300 hover:scale-[1.03] focus-within:scale-[1.03]">
+        <app-poster [movie]="featuredMovies[3]"
+                    class="h-full w-full rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"></app-poster>
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- Trending Now Section (New) -->
+  <section class="container mx-auto px-4 sm:px-6 md:px-8 my-8 md:my-12 lg:my-16 max-w-7xl">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Trending Now</h2>
+      <!--      <a href="#all-trending" class="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">View All</a>-->
+    </div>
+    <div class="overflow-x-auto pb-4">
+      <div class="flex space-x-4 min-w-max">
+        <div *ngFor="let movie of trendingMovies "
+             class="w-36 sm:w-44 md:w-52 flex-shrink-0 transition-transform duration-300 hover:scale-105">
+          <app-poster [movie]="movie" class="rounded-lg overflow-hidden shadow-md hover:shadow-lg"></app-poster>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recently Added Section (New) -->
+  <section class="container mx-auto px-4 sm:px-6 md:px-8 my-8 md:my-12 lg:my-16 pb-8 md:pb-16 max-w-7xl">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Recently Added</h2>
+      <!--      <a href="#all-recent" class="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">View All</a>-->
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+      <div *ngFor="let movie of recentMovies " class="transition-transform duration-300 hover:scale-105">
+        <app-poster [movie]="movie" class="rounded-lg overflow-hidden shadow-md hover:shadow-lg"></app-poster>
       </div>
     </div>
   </section>
