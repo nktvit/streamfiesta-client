@@ -1,4 +1,4 @@
-# **Assignment 2. Stream Fiesta Frontend**
+# **StreamFiesta**
 
 ## Setup
 ```bash
@@ -11,4 +11,10 @@ npm install
 
 # Copy .env.example to .env
 cp .env.example .env
+
+# Environment configuration
+npm run config
+
+# Start the dev server
+npm run dev
 ```
