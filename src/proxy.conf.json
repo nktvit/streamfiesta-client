@@ -1,12 +1,4 @@
 {
-  "/media": {
-    "target": "https://vidsrc.me",
-    "secure": true,
-    "changeOrigin": true,
-    "pathRewrite": {
-      "^/media": ""
-    }
-  },
   "/api/suggestions": {
     "target": "https://www.omdbapi.com",
     "secure": true,
