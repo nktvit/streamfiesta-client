@@ -31,7 +31,7 @@
            [routerLink]="['/about']">About</a>
 
         <!-- Auth related links -->
-        <ng-container *ngIf="!pbManager.isAuthenticated">
+<!--         <ng-container *ngIf="!pbManager.isAuthenticated">
           <a [ngClass]="{'font-medium text-blue-500': currentPage === '/signin', 'font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500': currentPage !== '/signin'}"
              [routerLink]="['/signin']">Sign In</a>
           <a [ngClass]="{'font-medium text-blue-500': currentPage === '/signup', 'font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500': currentPage !== '/signup'}"
@@ -47,7 +47,7 @@
             text="Sign Out"
             buttonClass="font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500">
           </app-logout-button>
-        </ng-container>
+        </ng-container> -->
       </div>
     </div>
   </nav>
