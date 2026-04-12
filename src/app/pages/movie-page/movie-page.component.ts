@@ -9,6 +9,13 @@ import {catchError, of, switchMap, tap} from "rxjs";
 import {PosterComponent} from "../../components/poster/poster.component";
 import {LoggerService} from "../../services/logger.service";
 
+interface EpisodeInfo {
+  number: number;
+  title: string;
+  imdbRating: string;
+  released: string;
+}
+
 @Component({
   selector: 'app-movie-page',
   imports: [NavbarComponent, BackButtonComponent, NgClass, MoviePlayerComponent, PosterComponent],
@@ -31,6 +38,8 @@ export class MoviePageComponent {
   protected episode: number | null = null;
   protected totalSeasons: number = 0;
   protected seasonNumbers: number[] = [];
+  protected episodes: EpisodeInfo[] = [];
+  protected loadingEpisodes = false;
 
   private movieService = inject(MovieService);
   private route = inject(ActivatedRoute);
@@ -81,6 +90,7 @@ export class MoviePageComponent {
             this.seasonNumbers = Array.from({length: this.totalSeasons}, (_, i) => i + 1);
             if (!this.season) this.season = 1;
             if (!this.episode) this.episode = 1;
+            this.loadEpisodes(this.season!);
           }
         }
         this.isLoading = false;
@@ -88,7 +98,24 @@ export class MoviePageComponent {
     ).subscribe();
   }
 
+  loadEpisodes(season: number) {
+    this.loadingEpisodes = true;
+    this.movieService.getSeasonEpisodes(this.imdbId, season).subscribe(episodes => {
+      this.episodes = episodes.map((ep: any) => ({
+        number: +ep.Episode,
+        title: ep.Title,
+        imdbRating: ep.imdbRating,
+        released: ep.Released,
+      }));
+      this.loadingEpisodes = false;
+    });
+  }
+
   goToEpisode(season: number, episode: number) {
+    if (episode < 1) episode = 1;
+    if (this.episodes.length > 0 && episode > this.episodes.length) {
+      episode = this.episodes.length;
+    }
     this.season = season;
     this.episode = episode;
     this.router.navigate([], {
@@ -105,10 +132,12 @@ export class MoviePageComponent {
   }
 
   nextEpisode() {
+    if (this.episode && this.episodes.length > 0 && this.episode >= this.episodes.length) return;
     this.goToEpisode(this.season!, (this.episode || 0) + 1);
   }
 
   onSeasonChange(seasonNum: number) {
+    this.loadEpisodes(seasonNum);
     this.goToEpisode(seasonNum, 1);
   }
 
@@ -118,7 +147,6 @@ export class MoviePageComponent {
   }
 
   adjustPlot(plot: string): string {
-    // Remove trailing comma if it exists
     if (!plot || plot === 'N/A') {
       return '';
     }

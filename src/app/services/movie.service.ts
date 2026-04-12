@@ -88,6 +88,14 @@ export class MovieService {
     );
   }
 
+  getSeasonEpisodes(imdbId: string, season: number): Observable<any[]> {
+    const url = `https://www.omdbapi.com/?apikey=${this.API_KEY}&i=${encodeURIComponent(imdbId)}&Season=${season}`;
+    return this.http.get<any>(url).pipe(
+      map(response => response.Response === 'True' ? response.Episodes : []),
+      catchError(() => of([]))
+    );
+  }
+
   getImdbId(movieDetails: any): string {
     if (movieDetails && movieDetails.imdbID) {
       return movieDetails.imdbID;
