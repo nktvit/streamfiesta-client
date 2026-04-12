@@ -3,8 +3,6 @@ import { SearchBoxComponent } from '../search-box/search-box.component';
 import { RouterLink, Router } from '@angular/router';
 import { NgClass, NgIf } from '@angular/common';
 import { LoggerService } from "../../services/logger.service";
-import { LogoutButtonComponent } from '../logout-button/logout-button.component';
-import {PbManagerService} from "../../services/pbmanager.service"
 
 @Component({
   selector: 'app-navbar',
@@ -14,7 +12,6 @@ import {PbManagerService} from "../../services/pbmanager.service"
     RouterLink,
     NgIf,
     NgClass,
-    LogoutButtonComponent
   ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
@@ -27,7 +24,6 @@ export class NavbarComponent implements OnInit {
   constructor(
     private router: Router,
     private logger: LoggerService,
-    public pbManager: PbManagerService
   ) { }
 
   ngOnInit(): void {

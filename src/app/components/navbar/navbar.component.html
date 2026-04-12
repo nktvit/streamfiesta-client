@@ -30,24 +30,6 @@
         <a [ngClass]="{'font-medium text-blue-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600': currentPage === '/about', 'font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600': currentPage !== '/about'}"
            [routerLink]="['/about']">About</a>
 
-        <!-- Auth related links -->
-<!--         <ng-container *ngIf="!pbManager.isAuthenticated">
-          <a [ngClass]="{'font-medium text-blue-500': currentPage === '/signin', 'font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500': currentPage !== '/signin'}"
-             [routerLink]="['/signin']">Sign In</a>
-          <a [ngClass]="{'font-medium text-blue-500': currentPage === '/signup', 'font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500': currentPage !== '/signup'}"
-             [routerLink]="['/signup']">Sign Up</a>
-        </ng-container>
-
-        <ng-container *ngIf="pbManager.isAuthenticated">
-          <a [ngClass]="{'font-medium text-blue-500': currentPage === '/profile', 'font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500': currentPage !== '/profile'}"
-             [routerLink]="['/profile']">Profile</a>
-          <a [ngClass]="{'font-medium text-blue-500': currentPage === '/watchlist', 'font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500': currentPage !== '/watchlist'}"
-             [routerLink]="['/watchlist']">Watchlist</a>
-          <app-logout-button
-            text="Sign Out"
-            buttonClass="font-medium text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500">
-          </app-logout-button>
-        </ng-container> -->
       </div>
     </div>
   </nav>
