@@ -1,8 +1,7 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, catchError, map, Observable, of, tap} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment'
-import {Router, ActivatedRoute} from '@angular/router';
 import {LoggerService} from "./logger.service";
 
 @Injectable({providedIn: 'root'})
@@ -26,8 +25,8 @@ export class MovieService {
   currentPage$ = this.currentPageSource.asObservable();
   totalResults$ = this.totalResultsSource.asObservable();
 
-  constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router, private logger: LoggerService) {
-  }
+  private http = inject(HttpClient);
+  private logger = inject(LoggerService);
 
 
   searchMovies(searchTerm: string, page: number = 1): Observable<any> {
@@ -115,9 +114,3 @@ export class MovieService {
   }
 
 }
-
-
-
-
-
-

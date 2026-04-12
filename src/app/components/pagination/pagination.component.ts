@@ -1,19 +1,17 @@
-import { NgIf } from '@angular/common';
-import { Component, EventEmitter, Input, Output, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, inject, input, output, OnChanges, SimpleChanges } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-pagination',
-  standalone: true,
-  imports: [NgIf, MatPaginatorModule],
+  imports: [MatPaginatorModule],
   templateUrl: './pagination.component.html',
   styleUrls: ['./pagination.component.css'],
 })
-export class PaginationComponent implements OnInit, OnChanges {
-  @Input() totalResults: number = 0;
-  @Output() pageChanged = new EventEmitter<number>();
+export class PaginationComponent implements OnChanges {
+  readonly totalResults = input<number>(0);
+  readonly pageChanged = output<number>();
   totalPages: number = 0;
   currentPage: number = 1;
 
@@ -22,7 +20,7 @@ export class PaginationComponent implements OnInit, OnChanges {
   private initialPageSet: boolean = false;
   private routeSubscription?: Subscription;
 
-  constructor(private route: ActivatedRoute) {}
+  private route = inject(ActivatedRoute);
 
   ngOnInit(): void {
     this.initializePagination();
@@ -39,7 +37,7 @@ export class PaginationComponent implements OnInit, OnChanges {
   }
 
   private initializePagination(): void {
-    this.totalPages = Math.ceil(this.totalResults / this.itemsPerPage);
+    this.totalPages = Math.ceil(this.totalResults() / this.itemsPerPage);
     this.generatePagesArray();
 
     if (!this.initialPageSet) {

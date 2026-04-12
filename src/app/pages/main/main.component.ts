@@ -1,17 +1,15 @@
 import {Component} from '@angular/core'
 import {SearchBoxComponent} from '../../components/search-box/search-box.component'
 import {NavbarComponent} from '../../components/navbar/navbar.component'
-import {MatMonthView} from "@angular/material/datepicker"
 import {PosterComponent} from "../../components/poster/poster.component"
 import {IMovie} from "../../interfaces/movie.interface"
-import {NgForOf} from "@angular/common"
+
 
 @Component({
   selector: 'app-main',
-  standalone: true,
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
-  imports: [SearchBoxComponent, NavbarComponent, PosterComponent, NgForOf]
+  imports: [SearchBoxComponent, NavbarComponent, PosterComponent]
 })
 export class MainComponent {
 
@@ -167,7 +165,4 @@ export class MainComponent {
       imdbID: 'tt1630029'
     }
   ];
-
-
-  protected readonly MatMonthView = MatMonthView
 }

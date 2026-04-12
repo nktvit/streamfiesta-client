@@ -1,7 +1,7 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {MovieService} from '../../services/movie.service';
 import {ActivatedRoute} from '@angular/router';
-import {NgClass, NgFor, NgIf} from '@angular/common';
+import { NgClass } from '@angular/common';
 import {NavbarComponent} from '../../components/navbar/navbar.component';
 import {BackButtonComponent} from '../../components/back-button/back-button.component';
 import {MoviePlayerComponent} from "../../components/movie-player/movie-player.component";
@@ -11,8 +11,7 @@ import {LoggerService} from "../../services/logger.service";
 
 @Component({
   selector: 'app-movie-page',
-  standalone: true,
-  imports: [NgIf, NgFor, NavbarComponent, BackButtonComponent, NgClass, MoviePlayerComponent, PosterComponent],
+  imports: [NavbarComponent, BackButtonComponent, NgClass, MoviePlayerComponent, PosterComponent],
   templateUrl: './movie-page.component.html',
   styleUrl: './movie-page.component.css'
 })
@@ -29,7 +28,9 @@ export class MoviePageComponent {
   protected type: string = 'movie';
   protected imdbId: any;
 
-  constructor(private movieService: MovieService, private route: ActivatedRoute, private logger: LoggerService) {}
+  private movieService = inject(MovieService);
+  private route = inject(ActivatedRoute);
+  private logger = inject(LoggerService);
 
   ngOnInit() {
     this.isLoading = true;  // Set loading at start

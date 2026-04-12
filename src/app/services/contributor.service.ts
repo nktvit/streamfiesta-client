@@ -1,7 +1,7 @@
 import {HttpClient, HttpErrorResponse} from "@angular/common/http";
 import {catchError, finalize, map, Observable, of, throwError} from "rxjs";
 import {environment} from "../../environments/environment";
-import {Injectable} from "@angular/core";
+import {inject, Injectable} from "@angular/core";
 import {IContributorFetch} from "../interfaces/contributor.interface";
 import {INewContributor} from "../interfaces/contributor.interface";
 import {LoggerService} from "./logger.service";
@@ -11,8 +11,8 @@ import {LoggerService} from "./logger.service";
 })
 
 export class ContributorService {
-  constructor(private http: HttpClient, private logger: LoggerService) {
-  }
+  private http = inject(HttpClient);
+  private logger = inject(LoggerService);
 
   getContributors(): Observable<IContributorFetch[]> {
     return this.http.get<IContributorFetch[]>(`${environment.BACKEND_URL}/contributions`)

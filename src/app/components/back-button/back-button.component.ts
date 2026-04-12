@@ -1,26 +1,21 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import {Location} from '@angular/common';
 
 @Component({
   selector: 'app-back-button',
-  standalone: true,
-  imports: [],
   templateUrl: './back-button.component.html',
   styleUrl: './back-button.component.css'
 })
 export class BackButtonComponent {
-  @Input() action: () => void = () => {
+  readonly action = input<() => void>(() => {});
 
-  };
-
-  constructor(private _location: Location)
-  {}
+  private _location = inject(Location);
 
   handleClick() {
-    if (this.action) {
-      this.action();
+    const fn = this.action();
+    if (fn) {
+      fn();
       this._location.back();
-
     }
   }
 }

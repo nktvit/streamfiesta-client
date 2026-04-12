@@ -1,3 +1,5 @@
-<mat-paginator *ngIf="totalPages > 1" [length]="totalResults" [pageSize]="itemsPerPage" [pageIndex]="currentPage - 1"
+@if (totalPages > 1) {
+  <mat-paginator [length]="totalResults()" [pageSize]="itemsPerPage" [pageIndex]="currentPage - 1"
     (page)="paginate($event)">
-</mat-paginator>
+  </mat-paginator>
+}

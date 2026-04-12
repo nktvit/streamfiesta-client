@@ -1,39 +1,34 @@
-import { Component, Input, ChangeDetectorRef, OnInit, SimpleChanges } from '@angular/core';
+import { Component, inject, input, ChangeDetectorRef, SimpleChanges } from '@angular/core';
 import { RouterLink } from "@angular/router";
-import { DomSanitizer } from "@angular/platform-browser";
 import { IMovie } from "../../interfaces/movie.interface";
-import { NgOptimizedImage, NgClass, NgIf } from "@angular/common";
+import { NgOptimizedImage, NgClass } from "@angular/common";
 import { LoggerService } from "../../services/logger.service";
 
 @Component({
   selector: 'app-poster',
-  standalone: true,
   imports: [
     RouterLink,
     NgOptimizedImage,
-    NgClass,
-    NgIf
-  ],
+    NgClass
+],
   templateUrl: './poster.component.html',
   styleUrl: './poster.component.css'
 })
-export class PosterComponent implements OnInit {
-  @Input() movie!: IMovie;
-  @Input() size: 'small' | 'medium' | 'large' | undefined;
-  @Input() displayTitle: boolean = false;
+export class PosterComponent {
+  readonly movie = input.required<IMovie>();
+  readonly size = input<'small' | 'medium' | 'large'>();
+  readonly displayTitle = input<boolean>(false);
+  readonly priority = input<boolean>(false);
 
   isLoading = true;
   imageUrl: string = '';
   placeholderUrl: string = '';
 
-  constructor(
-    private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef,
-    private logger: LoggerService,
-  ) {}
+  private cdr = inject(ChangeDetectorRef);
+  private logger = inject(LoggerService);
 
   private getPlaceholderUrl(): string {
-    const title = this.movie?.Title || 'No Title';
+    const title = this.movie()?.Title || 'No Title';
     const words = title.split(' ');
 
     if (words.length <= 3) {
@@ -68,9 +63,10 @@ export class PosterComponent implements OnInit {
   }
 
   updateImageUrl() {
-    this.logger.log('updateImageUrl called', this.movie);
-    if (this.movie && this.movie.Poster && this.movie.Poster !== 'N/A') {
-      this.imageUrl = this.movie.Poster;
+    const movie = this.movie();
+    this.logger.log('updateImageUrl called', movie);
+    if (movie && movie.Poster && movie.Poster !== 'N/A') {
+      this.imageUrl = movie.Poster;
       this.logger.log('Using movie poster URL:', this.imageUrl);
     } else {
       this.placeholderUrl = this.getPlaceholderUrl();
@@ -80,7 +76,7 @@ export class PosterComponent implements OnInit {
   }
 
   get sizeClasses(): string {
-    switch (this.size) {
+    switch (this.size()) {
       case 'small':
         return 'max-w-[150px]';
       case 'large':

@@ -1,10 +1,14 @@
-<div class="w-full" *ngIf="safeEmbedUrl">
-  <iframe
-    [src]="safeEmbedUrl"
-    width="100%"
-    class="rounded-lg"
-    style="aspect-ratio: 16 / 9;"
-    allowfullscreen
-  ></iframe>
-</div>
-<p *ngIf="!safeEmbedUrl">No valid ID provided.</p>
+@if (safeEmbedUrl) {
+  <div class="w-full">
+    <iframe
+      [src]="safeEmbedUrl"
+      width="100%"
+      class="rounded-lg"
+      style="aspect-ratio: 16 / 9;"
+      allowfullscreen
+    ></iframe>
+  </div>
+}
+@if (!safeEmbedUrl) {
+  <p>No valid ID provided.</p>
+}

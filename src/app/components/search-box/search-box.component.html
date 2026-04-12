@@ -21,8 +21,8 @@
                 dark:focus:ring-gray-600">
       <div class="absolute inset-y-0 start-0 flex items-center pointer-events-none z-20 ps-4">
         <svg class="flex-shrink-0 size-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="24"
-             height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
+          height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.3-4.3" />
         </svg>
@@ -31,55 +31,67 @@
         type="submit"
         [disabled]="isLoading"
         class="py-3 px-4 inline-flex justify-center items-center gap-2 text-sm font-semibold rounded-e-md border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600">
-                <span *ngIf="isLoading"
-                      class="animate-spin inline-block size-4 border-[3px] border-current border-t-transparent text-white rounded-full"
-                      role="status" aria-label="loading">
-                    <span class="sr-only">Loading...</span>
-                </span>
+        @if (isLoading) {
+          <span
+            class="animate-spin inline-block size-4 border-[3px] border-current border-t-transparent text-white rounded-full"
+            role="status" aria-label="loading">
+            <span class="sr-only">Loading...</span>
+          </span>
+        }
         Search
       </button>
     </div>
 
     <!-- Suggestions Dropdown -->
-    <div *ngIf="showSuggestions && isFocused"
-         class="absolute left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-      <!-- Loading indicator -->
-      <div *ngIf="isLoadingSuggestions" class="flex items-center justify-center p-4">
-        <div class="animate-spin inline-block w-5 h-5 border-2 border-current border-t-transparent text-blue-600 rounded-full" role="status">
-          <span class="sr-only">Loading...</span>
-        </div>
-        <span class="ml-2 text-gray-600 dark:text-gray-300">Loading suggestions...</span>
-      </div>
-
-      <!-- Suggestions list -->
-      <ul *ngIf="!isLoadingSuggestions && suggestions.length > 0">
-        <li *ngFor="let suggestion of suggestions; let i = index"
-            (mousedown)="selectSuggestion(suggestion)"
-            [ngClass]="{'bg-blue-50 dark:bg-gray-700': i === selectedSuggestionIndex}"
-            class="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-
-          <!-- Poster thumbnail (if available) -->
-          <div class="flex-shrink-0 w-10 h-14 mr-3 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
-            <img *ngIf="suggestion.poster" [src]="suggestion.poster" [alt]="suggestion.title" class="w-full h-full object-cover">
-            <div *ngIf="!suggestion.poster" class="w-full h-full flex items-center justify-center text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+    @if (showSuggestions && isFocused) {
+      <div
+        class="absolute left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+        <!-- Loading indicator -->
+        @if (isLoadingSuggestions) {
+          <div class="flex items-center justify-center p-4">
+            <div class="animate-spin inline-block w-5 h-5 border-2 border-current border-t-transparent text-blue-600 rounded-full" role="status">
+              <span class="sr-only">Loading...</span>
             </div>
+            <span class="ml-2 text-gray-600 dark:text-gray-300">Loading suggestions...</span>
           </div>
-
-          <!-- Title and year -->
-          <div class="flex-grow">
-            <div class="font-medium text-gray-800 dark:text-white">{{ suggestion.title }}</div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">{{ suggestion.year }} · {{ suggestion.type | titlecase }}</div>
+        }
+        <!-- Suggestions list -->
+        @if (!isLoadingSuggestions && suggestions.length > 0) {
+          <ul>
+            @for (suggestion of suggestions; track suggestion; let i = $index) {
+              <li
+                (mousedown)="selectSuggestion(suggestion)"
+                [ngClass]="{'bg-blue-50 dark:bg-gray-700': i === selectedSuggestionIndex}"
+                class="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
+                <!-- Poster thumbnail (if available) -->
+                <div class="flex-shrink-0 w-10 h-14 mr-3 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
+                  @if (suggestion.poster) {
+                    <img [src]="suggestion.poster" [alt]="suggestion.title" class="w-full h-full object-cover">
+                  }
+                  @if (!suggestion.poster) {
+                    <div class="w-full h-full flex items-center justify-center text-gray-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  }
+                </div>
+                <!-- Title and year -->
+                <div class="flex-grow">
+                  <div class="font-medium text-gray-800 dark:text-white">{{ suggestion.title }}</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ suggestion.year }} · {{ suggestion.type | titlecase }}</div>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+        <!-- No results -->
+        @if (!isLoadingSuggestions && suggestions.length === 0) {
+          <div class="p-4 text-center text-gray-500 dark:text-gray-400">
+            No results found for "{{ searchTerm }}"
           </div>
-        </li>
-      </ul>
-
-      <!-- No results -->
-      <div *ngIf="!isLoadingSuggestions && suggestions.length === 0" class="p-4 text-center text-gray-500 dark:text-gray-400">
-        No results found for "{{ searchTerm }}"
+        }
       </div>
-    </div>
+    }
   </form>
 </div>

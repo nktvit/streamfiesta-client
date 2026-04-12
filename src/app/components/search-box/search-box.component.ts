@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { MovieService } from '../../services/movie.service';
-import {NgIf, NgFor, NgClass, TitleCasePipe} from '@angular/common'
+import { NgClass, TitleCasePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService } from "../../services/logger.service";
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
@@ -16,12 +16,11 @@ interface SearchSuggestion {
 
 @Component({
   selector: 'app-search-box',
-  standalone: true,
-  imports: [NgIf, NgFor, NgClass, TitleCasePipe],
+  imports: [NgClass, TitleCasePipe],
   templateUrl: './search-box.component.html',
   styleUrl: './search-box.component.css'
 })
-export class SearchBoxComponent implements OnInit, OnDestroy {
+export class SearchBoxComponent implements OnDestroy {
   searchTerm = "";
   lastSearchTerm = "";
   placeholder = "Enter any title...";
@@ -38,12 +37,10 @@ export class SearchBoxComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   protected selectedSuggestionIndex = -1;
 
-  constructor(
-    private movieService: MovieService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private logger: LoggerService
-  ) { }
+  private movieService = inject(MovieService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private logger = inject(LoggerService);
 
   performSearch(prompt: string) {
     if (prompt !== "" && prompt !== this.lastSearchTerm) {

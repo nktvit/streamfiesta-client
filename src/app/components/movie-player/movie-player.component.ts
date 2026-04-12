@@ -1,33 +1,29 @@
-import {Component, ElementRef, Input, OnChanges, ViewChild} from '@angular/core';
+import {Component, ElementRef, inject, input, OnChanges, ViewChild} from '@angular/core';
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
-import {NgIf} from "@angular/common";
+
 
 @Component({
   selector: 'app-movie-player',
-  standalone: true,
-  imports: [
-    NgIf
-  ],
+  imports: [],
   templateUrl: `./movie-player.component.html`,
   styleUrl: './movie-player.component.css'
 })
 export class MoviePlayerComponent implements OnChanges {
-  @Input() imdbId: string = '';
-  @Input() type: string = 'movie';
+  readonly imdbId = input<string>('');
+  readonly type = input<string>('movie');
   @ViewChild('iframe') iframeRef!: ElementRef<HTMLIFrameElement>;
 
   safeEmbedUrl: SafeResourceUrl | null = null;
   isPlaying: boolean = false;
 
-  constructor(private sanitizer: DomSanitizer) {
-  }
+  private sanitizer = inject(DomSanitizer);
 
   ngOnChanges() {
     this.safeEmbedUrl = this.createSafeEmbedUrl();
   }
 
   private createSafeEmbedUrl(): SafeResourceUrl | null {
-    if (!this.imdbId) {
+    if (!this.imdbId()) {
       return null;
     }
 
@@ -36,9 +32,8 @@ export class MoviePlayerComponent implements OnChanges {
     // const baseUrl = 'http://localhost:3000/https://www.NontonGo.win/embed';
 
     const baseUrl = 'https://vidsrc.me/embed';
-    const embedUrl = `${baseUrl}/${this.type}/${this.imdbId}`;
+    const embedUrl = `${baseUrl}/${this.type()}/${this.imdbId()}`;
 
     return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
   }
 }
-

@@ -1,18 +1,17 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {MoviesGridComponent} from '../../components/movies-grid/movies-grid.component';
 import {MovieService} from '../../services/movie.service';
 import {PaginationComponent} from '../../components/pagination/pagination.component';
 import {NavbarComponent} from '../../components/navbar/navbar.component';
 import {ActivatedRoute, Router} from '@angular/router';
-import {NgIf} from '@angular/common';
+
 import {NotfoundComponent} from '../../components/notfound/notfound.component';
 import {IMovie} from "../../interfaces/movie.interface";
 import {LoggerService} from "../../services/logger.service";
 
 @Component({
   selector: 'app-search-page',
-  standalone: true,
-  imports: [MoviesGridComponent, PaginationComponent, NavbarComponent, NgIf, NotfoundComponent],
+  imports: [MoviesGridComponent, PaginationComponent, NavbarComponent, NotfoundComponent],
   templateUrl: './search-page.component.html',
   styleUrl: './search-page.component.css'
 })
@@ -23,8 +22,10 @@ export class SearchPageComponent {
 
   isLoading: boolean = false
 
-  constructor(private movieService: MovieService, private router: Router, private route: ActivatedRoute, private logger: LoggerService) {
-  }
+  private movieService = inject(MovieService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private logger = inject(LoggerService);
 
   loadMovies(prompt: string, page: number) {
     this.isLoading = true;
@@ -68,6 +69,3 @@ export class SearchPageComponent {
     this.currentPage = page
   }
 }
-
-
-
