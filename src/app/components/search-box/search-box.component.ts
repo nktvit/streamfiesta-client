@@ -105,23 +105,33 @@ export class SearchBoxComponent implements OnDestroy {
     this.isLoadingSuggestions = true;
 
     try {
-      const response = await fetch(
-        `https://www.omdbapi.com/?apikey=${environment.OMDB_API_KEY}&s=${encodeURIComponent(term)}`
-      );
-      const data = await response.json();
+      let suggestions: SearchSuggestion[] = [];
 
-      if (data.Response === 'True') {
-        this.suggestions = data.Search.map((item: any) => ({
-          id: item.imdbID,
-          title: item.Title,
-          year: item.Year,
-          type: item.Type,
-          poster: item.Poster !== 'N/A' ? item.Poster : null
-        })).slice(0, 5);
+      if (environment.production) {
+        // In production, use the Vercel serverless function (keeps API key server-side)
+        const response = await fetch(`/api/suggestions?q=${encodeURIComponent(term)}`);
+        const data = await response.json();
+        if (data.suggestions) {
+          suggestions = data.suggestions;
+        }
       } else {
-        this.suggestions = [];
+        // In development, call OMDB directly (proxied via Angular dev server)
+        const response = await fetch(
+          `https://www.omdbapi.com/?apikey=${environment.OMDB_API_KEY}&s=${encodeURIComponent(term)}`
+        );
+        const data = await response.json();
+        if (data.Response === 'True') {
+          suggestions = data.Search.map((item: any) => ({
+            id: item.imdbID,
+            title: item.Title,
+            year: item.Year,
+            type: item.Type,
+            poster: item.Poster !== 'N/A' ? item.Poster : null
+          })).slice(0, 5);
+        }
       }
 
+      this.suggestions = suggestions;
       this.showSuggestions = this.suggestions.length > 0;
       this.selectedSuggestionIndex = -1;
     } catch (error) {

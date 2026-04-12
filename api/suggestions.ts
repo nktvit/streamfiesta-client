@@ -1,4 +1,4 @@
-export default async function handler(req: { method: string; query: { q: string; apikey: string | undefined; }; }, res: { setHeader: (arg0: string, arg1: string) => void; status: (arg0: number) => { (): any; new(): any; end: { (): any; new(): any; }; json: { (arg0: { suggestions: any; message?: any; error?: string; errorDetails?: any; }): any; new(): any; }; }; }) {
+export default async function handler(req: { method: string; query: { q: string; }; }, res: { setHeader: (arg0: string, arg1: string) => void; status: (arg0: number) => { (): any; new(): any; end: { (): any; new(): any; }; json: { (arg0: { suggestions: any; message?: any; error?: string; errorDetails?: any; }): any; new(): any; }; }; }) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,7 +16,7 @@ export default async function handler(req: { method: string; query: { q: string;
   try {
     // Get query from request
     const query = req.query.q || '';
-    const apiKey = req.query.apikey || process.env["OMDB_API_KEY"];
+    const apiKey = process.env["OMDB_API_KEY"];
 
     if (!query || query.length < 2) {
       return res.status(200).json({
@@ -35,7 +35,7 @@ export default async function handler(req: { method: string; query: { q: string;
     // Fetch from OMDB API
     console.log(`Fetching results for "${query}" from OMDB API`);
     const response = await fetch(
-      `https://www.omdbapi.com/?apikey=${apiKey}&s=${encodeURIComponent(query)}&type=movie`
+      `https://www.omdbapi.com/?apikey=${apiKey}&s=${encodeURIComponent(query)}`
     );
 
     const data = await response.json();
