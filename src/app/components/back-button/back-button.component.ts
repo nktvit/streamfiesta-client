@@ -1,5 +1,6 @@
-import { Component, inject, input } from '@angular/core';
-import {Location} from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { Location } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-back-button',
@@ -7,15 +8,14 @@ import {Location} from '@angular/common';
   styleUrl: './back-button.component.css'
 })
 export class BackButtonComponent {
-  readonly action = input<() => void>(() => {});
-
   private _location = inject(Location);
+  private router = inject(Router);
 
   handleClick() {
-    const fn = this.action();
-    if (fn) {
-      fn();
+    if (window.history.length > 1) {
       this._location.back();
+    } else {
+      this.router.navigate(['/']);
     }
   }
 }
