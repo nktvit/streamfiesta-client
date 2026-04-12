@@ -1,6 +1,5 @@
-import {Component, ElementRef, inject, input, OnChanges, ViewChild} from '@angular/core';
+import {Component, inject, input, OnChanges} from '@angular/core';
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
-
 
 @Component({
   selector: 'app-movie-player',
@@ -11,10 +10,10 @@ import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
 export class MoviePlayerComponent implements OnChanges {
   readonly imdbId = input<string>('');
   readonly type = input<string>('movie');
-  @ViewChild('iframe') iframeRef!: ElementRef<HTMLIFrameElement>;
+  readonly season = input<number | null>(null);
+  readonly episode = input<number | null>(null);
 
   safeEmbedUrl: SafeResourceUrl | null = null;
-  isPlaying: boolean = false;
 
   private sanitizer = inject(DomSanitizer);
 
@@ -32,7 +31,13 @@ export class MoviePlayerComponent implements OnChanges {
     // const baseUrl = 'http://localhost:3000/https://www.NontonGo.win/embed';
 
     const baseUrl = 'https://vidsrc.me/embed';
-    const embedUrl = `${baseUrl}/${this.type()}/${this.imdbId()}`;
+    let embedUrl = `${baseUrl}/${this.type()}/${this.imdbId()}`;
+
+    const s = this.season();
+    const e = this.episode();
+    if (this.type() === 'tv' && s && e) {
+      embedUrl += `/${s}/${e}`;
+    }
 
     return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
   }

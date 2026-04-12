@@ -1,6 +1,6 @@
 import {Component, inject} from '@angular/core';
 import {MovieService} from '../../services/movie.service';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import { NgClass } from '@angular/common';
 import {NavbarComponent} from '../../components/navbar/navbar.component';
 import {BackButtonComponent} from '../../components/back-button/back-button.component';
@@ -27,13 +27,23 @@ export class MoviePageComponent {
   movieDetailsArray: any[] = [];
   protected type: string = 'movie';
   protected imdbId: any;
+  protected season: number | null = null;
+  protected episode: number | null = null;
+  protected totalSeasons: number = 0;
+  protected seasonNumbers: number[] = [];
 
   private movieService = inject(MovieService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private logger = inject(LoggerService);
 
   ngOnInit() {
-    this.isLoading = true;  // Set loading at start
+    this.isLoading = true;
+
+    this.route.queryParams.subscribe(params => {
+      this.season = params['s'] ? +params['s'] : null;
+      this.episode = params['e'] ? +params['e'] : null;
+    });
 
     this.route.paramMap.pipe(
       switchMap(params => {
@@ -65,10 +75,41 @@ export class MoviePageComponent {
           this.movieDetailsArray = this.movieService.formatMovieDetailsArray(details);
           this.imdbId = this.movieService.getImdbId(details);
           this.type = this.movieService.getMediaType(details);
+
+          if (this.type === 'tv' && details.totalSeasons && details.totalSeasons !== 'N/A') {
+            this.totalSeasons = +details.totalSeasons;
+            this.seasonNumbers = Array.from({length: this.totalSeasons}, (_, i) => i + 1);
+            if (!this.season) this.season = 1;
+            if (!this.episode) this.episode = 1;
+          }
         }
         this.isLoading = false;
       })
     ).subscribe();
+  }
+
+  goToEpisode(season: number, episode: number) {
+    this.season = season;
+    this.episode = episode;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {s: season, e: episode},
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  prevEpisode() {
+    if (this.episode && this.episode > 1) {
+      this.goToEpisode(this.season!, this.episode - 1);
+    }
+  }
+
+  nextEpisode() {
+    this.goToEpisode(this.season!, (this.episode || 0) + 1);
+  }
+
+  onSeasonChange(seasonNum: number) {
+    this.goToEpisode(seasonNum, 1);
   }
 
   togglePlot() {
