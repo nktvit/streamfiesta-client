@@ -1,40 +1,4 @@
-const TMDB_BASE = 'https://api.themoviedb.org/3';
-
-const LIST_ENDPOINTS: Record<string, string> = {
-  trending: '/trending/movie/week',
-  now_playing: '/movie/now_playing',
-  popular: '/movie/popular',
-  top_rated: '/movie/top_rated',
-  trending_tv: '/trending/tv/week',
-};
-
-function mapMovie(item: any) {
-  return {
-    imdbID: '',
-    tmdbId: item.id,
-    Title: item.title || item.name || '',
-    Poster: item.poster_path
-      ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
-      : '',
-    Plot: item.overview || '',
-    Backdrop: item.backdrop_path
-      ? `https://image.tmdb.org/t/p/original${item.backdrop_path}`
-      : '',
-    Rating: item.vote_average || 0,
-    Year: (item.release_date || item.first_air_date || '').substring(0, 4),
-  };
-}
-
-export default async function handler(
-  req: { method: string; query: { list?: string; id?: string } },
-  res: {
-    setHeader: (k: string, v: string) => void;
-    status: (code: number) => {
-      end: () => any;
-      json: (body: any) => any;
-    };
-  }
-) {
+export default async function handler(req: { method: string; query: { list?: string; id?: string } }, res: { setHeader: (arg0: string, arg1: string) => void; status: (arg0: number) => { (): any; new(): any; end: { (): any; new(): any; }; json: { (arg0: any): any; new(): any; }; }; }) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -50,6 +14,33 @@ export default async function handler(
   const apiKey = process.env['TMDB_API_KEY'];
   if (!apiKey) {
     return res.status(500).json({ error: 'TMDB API key not configured' });
+  }
+
+  const TMDB_BASE = 'https://api.themoviedb.org/3';
+
+  const LIST_ENDPOINTS: any = {
+    trending: '/trending/movie/week',
+    now_playing: '/movie/now_playing',
+    popular: '/movie/popular',
+    top_rated: '/movie/top_rated',
+    trending_tv: '/trending/tv/week',
+  };
+
+  function mapMovie(item: any) {
+    return {
+      imdbID: '',
+      tmdbId: item.id,
+      Title: item.title || item.name || '',
+      Poster: item.poster_path
+        ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+        : '',
+      Plot: item.overview || '',
+      Backdrop: item.backdrop_path
+        ? `https://image.tmdb.org/t/p/original${item.backdrop_path}`
+        : '',
+      Rating: item.vote_average || 0,
+      Year: (item.release_date || item.first_air_date || '').substring(0, 4),
+    };
   }
 
   const { list, id } = req.query;
