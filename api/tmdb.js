@@ -48,9 +48,16 @@ module.exports = async function handler(req, res) {
 
   try {
     if (list === 'movie' && id) {
+      // Try as movie first
       var response = await fetch(TMDB_BASE + '/movie/' + id + '?api_key=' + apiKey);
       var data = await response.json();
-      return res.status(200).json({ imdbID: data.imdb_id || '' });
+      if (data.imdb_id) {
+        return res.status(200).json({ imdbID: data.imdb_id });
+      }
+      // Fall back to TV show
+      var tvResponse = await fetch(TMDB_BASE + '/tv/' + id + '/external_ids?api_key=' + apiKey);
+      var tvData = await tvResponse.json();
+      return res.status(200).json({ imdbID: tvData.imdb_id || '' });
     }
 
     if (list === 'recommendations' && id) {

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, catchError, of } from 'rxjs';
+import { Observable, map, switchMap, catchError, of } from 'rxjs';
 import { IMovie } from '../interfaces/movie.interface';
 import { environment } from '../../environments/environment';
 import { LoggerService } from './logger.service';
@@ -58,10 +58,22 @@ export class TmdbService {
       );
     }
 
+    const apiKey = (environment as any).TMDB_API_KEY;
+    // Try movie first, fall back to TV
     return this.http.get<any>(
-      `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${(environment as any).TMDB_API_KEY}`
+      `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${apiKey}`
     ).pipe(
       map(res => res.imdb_id || ''),
+      switchMap(imdbId => {
+        if (imdbId) return of(imdbId);
+        // Not a movie — try TV external IDs
+        return this.http.get<any>(
+          `https://api.themoviedb.org/3/tv/${tmdbId}/external_ids?api_key=${apiKey}`
+        ).pipe(
+          map(res => res.imdb_id || ''),
+          catchError(() => of(''))
+        );
+      }),
       catchError(() => of(''))
     );
   }

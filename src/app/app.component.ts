@@ -12,6 +12,10 @@ export class AppComponent {
   currentYear = new Date().getFullYear();
 
   ngOnInit() {
-    initFlowbite();
+    try {
+      initFlowbite();
+    } catch (e) {
+      console.warn('Flowbite init failed:', e);
+    }
   }
 }
