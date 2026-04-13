@@ -1,4 +1,4 @@
-export default async function handler(req: { method: string; query: { list?: string; id?: string } }, res: { setHeader: (arg0: string, arg1: string) => void; status: (arg0: number) => { (): any; new(): any; end: { (): any; new(): any; }; json: { (arg0: any): any; new(): any; }; }; }) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -18,7 +18,7 @@ export default async function handler(req: { method: string; query: { list?: str
 
   const TMDB_BASE = 'https://api.themoviedb.org/3';
 
-  const LIST_ENDPOINTS: any = {
+  const LIST_ENDPOINTS = {
     trending: '/trending/movie/week',
     now_playing: '/movie/now_playing',
     popular: '/movie/popular',
@@ -26,52 +26,51 @@ export default async function handler(req: { method: string; query: { list?: str
     trending_tv: '/trending/tv/week',
   };
 
-  function mapMovie(item: any) {
+  function mapMovie(item) {
     return {
       imdbID: '',
       tmdbId: item.id,
       Title: item.title || item.name || '',
       Poster: item.poster_path
-        ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+        ? 'https://image.tmdb.org/t/p/w500' + item.poster_path
         : '',
       Plot: item.overview || '',
       Backdrop: item.backdrop_path
-        ? `https://image.tmdb.org/t/p/original${item.backdrop_path}`
+        ? 'https://image.tmdb.org/t/p/original' + item.backdrop_path
         : '',
       Rating: item.vote_average || 0,
       Year: (item.release_date || item.first_air_date || '').substring(0, 4),
     };
   }
 
-  const { list, id } = req.query;
+  var list = req.query.list;
+  var id = req.query.id;
 
   try {
-    // Single movie lookup (for IMDB ID resolution)
     if (list === 'movie' && id) {
-      const response = await fetch(`${TMDB_BASE}/movie/${id}?api_key=${apiKey}`);
-      const data = await response.json();
+      var response = await fetch(TMDB_BASE + '/movie/' + id + '?api_key=' + apiKey);
+      var data = await response.json();
       return res.status(200).json({ imdbID: data.imdb_id || '' });
     }
 
-    // List endpoints
-    const endpoint = list ? LIST_ENDPOINTS[list] : null;
+    var endpoint = list ? LIST_ENDPOINTS[list] : null;
     if (!endpoint) {
-      return res.status(400).json({ error: 'Invalid list parameter. Use: trending, now_playing, popular, top_rated, trending_tv' });
+      return res.status(400).json({ error: 'Invalid list parameter' });
     }
 
-    const response = await fetch(`${TMDB_BASE}${endpoint}?api_key=${apiKey}&language=en-US&page=1`);
-    const data = await response.json();
+    var response = await fetch(TMDB_BASE + endpoint + '?api_key=' + apiKey + '&language=en-US&page=1');
+    var data = await response.json();
 
     if (!data.results) {
       return res.status(200).json({ movies: [] });
     }
 
-    const movies = data.results
-      .filter((item: any) => item.original_language !== 'ru' && item.vote_count > 100)
+    var movies = data.results
+      .filter(function(item) { return item.original_language !== 'ru' && item.vote_count > 100; })
       .map(mapMovie);
-    return res.status(200).json({ movies });
-  } catch (error: any) {
+    return res.status(200).json({ movies: movies });
+  } catch (error) {
     console.error('TMDB API error:', error);
     return res.status(500).json({ error: 'Failed to fetch from TMDB', details: error.message });
   }
-}
+};

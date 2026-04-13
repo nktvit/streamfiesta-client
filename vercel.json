@@ -1,11 +1,11 @@
 {
   "version": 2,
   "functions": {
-    "api/suggestions.ts": {
+    "api/suggestions.js": {
       "memory": 1024,
       "maxDuration": 15
     },
-    "api/tmdb.ts": {
+    "api/tmdb.js": {
       "memory": 1024,
       "maxDuration": 15
     }
