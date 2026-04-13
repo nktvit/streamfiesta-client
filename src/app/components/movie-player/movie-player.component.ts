@@ -26,7 +26,7 @@ export class MoviePlayerComponent implements OnChanges {
       return null;
     }
 
-    const baseUrl = 'https://vidsrc-embed.ru/embed';
+    const baseUrl = '/embed';
     const type = this.type() === 'tv' ? 'tv' : 'movie';
     let embedUrl = `${baseUrl}/${type}/${this.imdbId()}`;
 

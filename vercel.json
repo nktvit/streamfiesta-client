@@ -13,6 +13,7 @@
   "buildCommand": "npm run build",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/embed/(.*)", "destination": "https://vidsrc-embed.ru/embed/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
