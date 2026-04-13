@@ -5,8 +5,8 @@ import { IMovie } from '../interfaces/movie.interface';
 import { environment } from '../../environments/environment';
 import { LoggerService } from './logger.service';
 
-const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
-const TMDB_BACKDROP_BASE = 'https://image.tmdb.org/t/p/original';
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w342';
+const TMDB_BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
 
 @Injectable({ providedIn: 'root' })
 export class TmdbService {

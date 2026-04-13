@@ -11,6 +11,8 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
+  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=600');
+
   try {
     var query = req.query.q || '';
     var apiKey = process.env['OMDB_API_KEY'];

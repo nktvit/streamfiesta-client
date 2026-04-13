@@ -11,6 +11,21 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
+  var cacheValues = {
+    trending: 's-maxage=3600, stale-while-revalidate=600',
+    popular: 's-maxage=3600, stale-while-revalidate=600',
+    now_playing: 's-maxage=7200, stale-while-revalidate=600',
+    top_rated: 's-maxage=86400, stale-while-revalidate=3600',
+    trending_tv: 's-maxage=3600, stale-while-revalidate=600',
+    movie: 's-maxage=604800, stale-while-revalidate=86400',
+    recommendations: 's-maxage=86400, stale-while-revalidate=3600',
+  };
+
+  var listParam = req.query.list;
+  if (listParam && cacheValues[listParam]) {
+    res.setHeader('Cache-Control', cacheValues[listParam]);
+  }
+
   const apiKey = process.env['TMDB_API_KEY'];
   if (!apiKey) {
     return res.status(500).json({ error: 'TMDB API key not configured' });
@@ -32,11 +47,11 @@ module.exports = async function handler(req, res) {
       tmdbId: item.id,
       Title: item.title || item.name || '',
       Poster: item.poster_path
-        ? 'https://image.tmdb.org/t/p/w500' + item.poster_path
+        ? 'https://image.tmdb.org/t/p/w342' + item.poster_path
         : '',
       Plot: item.overview || '',
       Backdrop: item.backdrop_path
-        ? 'https://image.tmdb.org/t/p/original' + item.backdrop_path
+        ? 'https://image.tmdb.org/t/p/w1280' + item.backdrop_path
         : '',
       Rating: item.vote_average || 0,
       Year: (item.release_date || item.first_air_date || '').substring(0, 4),

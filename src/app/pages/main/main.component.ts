@@ -32,6 +32,15 @@ export class MainComponent {
         const candidates = movies.filter(m => m.Backdrop).slice(0, 5);
         this.heroMovie = candidates[Math.floor(Math.random() * candidates.length)] || movies[0];
         this.trendingMovies = movies.slice(0, 20);
+
+        // Preload hero backdrop
+        if (this.heroMovie?.Backdrop) {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = this.heroMovie.Backdrop;
+          document.head.appendChild(link);
+        }
       }
       this.loading = false;
     });
