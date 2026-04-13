@@ -53,6 +53,18 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ imdbID: data.imdb_id || '' });
     }
 
+    if (list === 'recommendations' && id) {
+      var response = await fetch(TMDB_BASE + '/movie/' + id + '/recommendations?api_key=' + apiKey + '&language=en-US&page=1');
+      var data = await response.json();
+      if (!data.results) {
+        return res.status(200).json({ movies: [] });
+      }
+      var movies = data.results
+        .filter(function(item) { return item.vote_count > 50; })
+        .map(mapMovie);
+      return res.status(200).json({ movies: movies });
+    }
+
     var endpoint = list ? LIST_ENDPOINTS[list] : null;
     if (!endpoint) {
       return res.status(400).json({ error: 'Invalid list parameter' });

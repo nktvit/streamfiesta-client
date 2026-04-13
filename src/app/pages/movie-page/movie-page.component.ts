@@ -9,6 +9,7 @@ import {catchError, of, switchMap, tap} from "rxjs";
 import {PosterComponent} from "../../components/poster/poster.component";
 import {LoggerService} from "../../services/logger.service";
 import {TmdbService} from "../../services/tmdb.service";
+import {IMovie} from "../../interfaces/movie.interface";
 
 interface EpisodeInfo {
   number: number;
@@ -41,6 +42,8 @@ export class MoviePageComponent {
   protected seasonNumbers: number[] = [];
   protected episodes: EpisodeInfo[] = [];
   protected loadingEpisodes = false;
+  protected recommendations: IMovie[] = [];
+  private originalRouteId: string = '';
 
   private movieService = inject(MovieService);
   private tmdbService = inject(TmdbService);
@@ -60,6 +63,7 @@ export class MoviePageComponent {
       switchMap(params => {
         const id = params.get('id');
         if (id === null) return of(null);
+        this.originalRouteId = id;
 
         // If numeric ID, it's a TMDB ID — resolve to IMDB ID first
         if (/^\d+$/.test(id)) {
@@ -115,8 +119,18 @@ export class MoviePageComponent {
           }
         }
         this.isLoading = false;
+        this.loadRecommendations();
       })
     ).subscribe();
+  }
+
+  private loadRecommendations() {
+    // Use TMDB ID if available (numeric route param), otherwise skip
+    if (/^\d+$/.test(this.originalRouteId)) {
+      this.tmdbService.getRecommendations(+this.originalRouteId).subscribe(movies => {
+        this.recommendations = movies.slice(0, 15);
+      });
+    }
   }
 
   loadEpisodes(season: number) {

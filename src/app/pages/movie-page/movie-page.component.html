@@ -227,6 +227,20 @@
       }
     }
 
+    <!-- You might also like -->
+    @if (recommendations.length > 0) {
+      <section class="mt-10 md:mt-14 mb-8">
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4">You Might Also Like</h2>
+        <div class="flex gap-2 md:gap-3 overflow-x-auto pb-4 -mx-4 md:-mx-6 px-4 md:px-6 scrollbar-hide">
+          @for (movie of recommendations; track movie.tmdbId ?? movie.imdbID) {
+            <div class="w-[120px] sm:w-[140px] md:w-[160px] flex-shrink-0 transition-transform duration-200 hover:scale-105">
+              <app-poster [movie]="movie" [displayTitle]="true" class="rounded-lg overflow-hidden"></app-poster>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
     <!-- Error State -->
     @if (invalidResponse) {
       <div class="mt-8 rounded-lg bg-red-50 p-4 dark:bg-red-900/10">

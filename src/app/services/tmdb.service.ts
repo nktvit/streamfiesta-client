@@ -33,6 +33,23 @@ export class TmdbService {
     return this.fetchList('trending_tv');
   }
 
+  getRecommendations(tmdbId: number): Observable<IMovie[]> {
+    if (environment.production) {
+      return this.http.get<any>(`/api/tmdb?list=recommendations&id=${tmdbId}`).pipe(
+        map(res => res.movies || []),
+        catchError(() => of([]))
+      );
+    }
+
+    const url = `https://api.themoviedb.org/3/movie/${tmdbId}/recommendations?api_key=${(environment as any).TMDB_API_KEY}&language=en-US&page=1`;
+    return this.http.get<any>(url).pipe(
+      map(res => (res.results || [])
+        .filter((item: any) => item.vote_count > 50)
+        .map((item: any) => this.mapMovie(item))),
+      catchError(() => of([]))
+    );
+  }
+
   getImdbId(tmdbId: number): Observable<string> {
     if (environment.production) {
       return this.http.get<any>(`/api/tmdb?list=movie&id=${tmdbId}`).pipe(
