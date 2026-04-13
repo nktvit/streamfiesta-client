@@ -94,6 +94,7 @@ export class MoviePageComponent {
         );
       }),
       tap(details => {
+        if (details === null) return; // Skip — either redirecting or no data yet
         if (details) {
           this.invalidResponse = false;
           this.movieDetails = details;
