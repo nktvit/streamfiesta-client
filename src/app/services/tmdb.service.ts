@@ -33,6 +33,46 @@ export class TmdbService {
     return this.fetchList('trending_tv');
   }
 
+  getTVDetails(tmdbId: number): Observable<{totalSeasons: number, seasons: {number: number, name: string, episodeCount: number}[]}> {
+    if (environment.production) {
+      return this.http.get<any>(`/api/tmdb?list=tv_details&id=${tmdbId}`).pipe(
+        map(res => res),
+        catchError(() => of({ totalSeasons: 0, seasons: [] }))
+      );
+    }
+    return this.http.get<any>(
+      `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${(environment as any).TMDB_API_KEY}&language=en-US`
+    ).pipe(
+      map(res => ({
+        totalSeasons: res.number_of_seasons || 0,
+        seasons: (res.seasons || [])
+          .filter((s: any) => s.season_number > 0)
+          .map((s: any) => ({ number: s.season_number, name: s.name, episodeCount: s.episode_count }))
+      })),
+      catchError(() => of({ totalSeasons: 0, seasons: [] }))
+    );
+  }
+
+  getTVSeasonEpisodes(tmdbId: number, season: number): Observable<any[]> {
+    if (environment.production) {
+      return this.http.get<any>(`/api/tmdb?list=tv_episodes&id=${tmdbId}&season=${season}`).pipe(
+        map(res => res.episodes || []),
+        catchError(() => of([]))
+      );
+    }
+    return this.http.get<any>(
+      `https://api.themoviedb.org/3/tv/${tmdbId}/season/${season}?api_key=${(environment as any).TMDB_API_KEY}&language=en-US`
+    ).pipe(
+      map(res => (res.episodes || []).map((ep: any) => ({
+        number: ep.episode_number,
+        title: ep.name || `Episode ${ep.episode_number}`,
+        rating: ep.vote_average ? ep.vote_average.toFixed(1) : null,
+        airDate: ep.air_date || null,
+      }))),
+      catchError(() => of([]))
+    );
+  }
+
   getPopularTV(page: number = 1): Observable<{movies: IMovie[], totalPages: number}> {
     if (environment.production) {
       return this.http.get<any>(`/api/tmdb?list=popular_tv&page=${page}`).pipe(

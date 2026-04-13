@@ -23,6 +23,8 @@ module.exports = async function handler(req, res) {
     genres: 's-maxage=86400, stale-while-revalidate=3600',
     discover: 's-maxage=3600, stale-while-revalidate=600',
     upcoming: 's-maxage=7200, stale-while-revalidate=600',
+    tv_details: 's-maxage=86400, stale-while-revalidate=3600',
+    tv_episodes: 's-maxage=86400, stale-while-revalidate=3600',
   };
 
   var listParam = req.query.list;
@@ -79,6 +81,30 @@ module.exports = async function handler(req, res) {
       var tvResponse = await fetch(TMDB_BASE + '/tv/' + id + '/external_ids?api_key=' + apiKey);
       var tvData = await tvResponse.json();
       return res.status(200).json({ imdbID: tvData.imdb_id || '' });
+    }
+
+    if (list === 'tv_details' && id) {
+      var response = await fetch(TMDB_BASE + '/tv/' + id + '?api_key=' + apiKey + '&language=en-US');
+      var data = await response.json();
+      var seasons = (data.seasons || [])
+        .filter(function(s) { return s.season_number > 0; })
+        .map(function(s) { return { number: s.season_number, name: s.name, episodeCount: s.episode_count }; });
+      return res.status(200).json({ totalSeasons: data.number_of_seasons || 0, seasons: seasons });
+    }
+
+    if (list === 'tv_episodes' && id) {
+      var season = req.query.season || '1';
+      var response = await fetch(TMDB_BASE + '/tv/' + id + '/season/' + season + '?api_key=' + apiKey + '&language=en-US');
+      var data = await response.json();
+      var episodes = (data.episodes || []).map(function(ep) {
+        return {
+          number: ep.episode_number,
+          title: ep.name || ('Episode ' + ep.episode_number),
+          rating: ep.vote_average ? ep.vote_average.toFixed(1) : null,
+          airDate: ep.air_date || null,
+        };
+      });
+      return res.status(200).json({ episodes: episodes });
     }
 
     if (list === 'recommendations' && id) {

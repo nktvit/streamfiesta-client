@@ -15,8 +15,8 @@ import {AdguardPromptComponent} from "../../components/adguard-prompt/adguard-pr
 interface EpisodeInfo {
   number: number;
   title: string;
-  imdbRating: string;
-  released: string;
+  rating: string | null;
+  airDate: string | null;
 }
 
 @Component({
@@ -44,7 +44,9 @@ export class MoviePageComponent {
   protected episodes: EpisodeInfo[] = [];
   protected loadingEpisodes = false;
   protected recommendations: IMovie[] = [];
+  protected seasonNames: Map<number, string> = new Map();
   private originalRouteId: string = '';
+  private tmdbId: number | null = null;
 
   private movieService = inject(MovieService);
   private tmdbService = inject(TmdbService);
@@ -111,12 +113,10 @@ export class MoviePageComponent {
           this.imdbId = this.movieService.getImdbId(details);
           this.type = this.movieService.getMediaType(details);
 
-          if (this.type === 'tv' && details.totalSeasons && details.totalSeasons !== 'N/A') {
-            this.totalSeasons = +details.totalSeasons;
-            this.seasonNumbers = Array.from({length: this.totalSeasons}, (_, i) => i + 1);
+          if (this.type === 'tv') {
+            this.resolveTmdbId();
             if (!this.season) this.season = 1;
             if (!this.episode) this.episode = 1;
-            this.loadEpisodes(this.season!);
           }
         }
         this.isLoading = false;
@@ -136,17 +136,50 @@ export class MoviePageComponent {
     }
   }
 
+  private resolveTmdbId() {
+    const tmdbParam = this.route.snapshot.queryParams['tmdb'];
+    this.tmdbId = tmdbParam ? +tmdbParam : (/^\d+$/.test(this.originalRouteId) ? +this.originalRouteId : null);
+
+    if (this.tmdbId) {
+      // Use TMDB for season/episode data (more accurate, especially for anime)
+      this.tmdbService.getTVDetails(this.tmdbId).subscribe(details => {
+        this.totalSeasons = details.totalSeasons;
+        this.seasonNumbers = details.seasons.map(s => s.number);
+        details.seasons.forEach(s => this.seasonNames.set(s.number, s.name));
+        this.loadEpisodes(this.season!);
+      });
+    } else {
+      // Fall back to OMDB
+      const omdbSeasons = this.movieDetails.totalSeasons;
+      if (omdbSeasons && omdbSeasons !== 'N/A') {
+        this.totalSeasons = +omdbSeasons;
+        this.seasonNumbers = Array.from({length: this.totalSeasons}, (_, i) => i + 1);
+        this.loadEpisodes(this.season!);
+      }
+    }
+  }
+
   loadEpisodes(season: number) {
     this.loadingEpisodes = true;
-    this.movieService.getSeasonEpisodes(this.imdbId, season).subscribe(episodes => {
-      this.episodes = episodes.map((ep: any) => ({
-        number: +ep.Episode,
-        title: ep.Title,
-        imdbRating: ep.imdbRating,
-        released: ep.Released,
-      }));
-      this.loadingEpisodes = false;
-    });
+
+    if (this.tmdbId) {
+      // TMDB episodes
+      this.tmdbService.getTVSeasonEpisodes(this.tmdbId, season).subscribe(episodes => {
+        this.episodes = episodes;
+        this.loadingEpisodes = false;
+      });
+    } else {
+      // OMDB episodes (fallback)
+      this.movieService.getSeasonEpisodes(this.imdbId, season).subscribe(episodes => {
+        this.episodes = episodes.map((ep: any) => ({
+          number: +ep.Episode,
+          title: ep.Title,
+          rating: ep.imdbRating !== 'N/A' ? ep.imdbRating : null,
+          airDate: ep.Released !== 'N/A' ? ep.Released : null,
+        }));
+        this.loadingEpisodes = false;
+      });
+    }
   }
 
   goToEpisode(season: number, episode: number) {
