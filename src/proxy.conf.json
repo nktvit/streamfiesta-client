@@ -7,10 +7,5 @@
       "^/api/suggestions": ""
     },
     "logLevel": "debug"
-  },
-  "/embed": {
-    "target": "https://vidsrc-embed.ru",
-    "secure": true,
-    "changeOrigin": true
   }
 }
