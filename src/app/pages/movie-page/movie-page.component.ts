@@ -65,23 +65,22 @@ export class MoviePageComponent {
         if (id === null) return of(null);
         this.originalRouteId = id;
 
-        // If numeric ID, it's a TMDB ID — resolve to IMDB ID first
+        // If numeric ID, it's a TMDB ID — resolve to IMDB ID and redirect
         if (/^\d+$/.test(id)) {
-          return this.tmdbService.getImdbId(+id).pipe(
-            switchMap(imdbId => {
-              if (!imdbId) {
-                this.invalidResponse = true;
-                return of(null);
-              }
-              this.movieId = imdbId;
-              return this.movieService.getMovieDetails(imdbId);
-            }),
-            catchError(error => {
-              this.logger.error('Error resolving TMDB ID: ', error);
+          const tmdbId = +id;
+          this.tmdbService.getImdbId(tmdbId).subscribe(imdbId => {
+            if (imdbId) {
+              this.router.navigate(['/movie', imdbId], {
+                replaceUrl: true,
+                queryParams: { tmdb: tmdbId },
+                queryParamsHandling: 'merge',
+              });
+            } else {
               this.invalidResponse = true;
-              return of(null);
-            })
-          );
+              this.isLoading = false;
+            }
+          });
+          return of(null);
         }
 
         // Standard IMDB ID
@@ -125,9 +124,11 @@ export class MoviePageComponent {
   }
 
   private loadRecommendations() {
-    // Use TMDB ID if available (numeric route param), otherwise skip
-    if (/^\d+$/.test(this.originalRouteId)) {
-      this.tmdbService.getRecommendations(+this.originalRouteId).subscribe(movies => {
+    // Use TMDB ID from query param or original route ID
+    const tmdbParam = this.route.snapshot.queryParams['tmdb'];
+    const tmdbId = tmdbParam ? +tmdbParam : (/^\d+$/.test(this.originalRouteId) ? +this.originalRouteId : null);
+    if (tmdbId) {
+      this.tmdbService.getRecommendations(tmdbId).subscribe(movies => {
         this.recommendations = movies.slice(0, 15);
       });
     }
