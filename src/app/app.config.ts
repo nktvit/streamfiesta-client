@@ -1,6 +1,6 @@
 import { ApplicationConfig } from '@angular/core';
 import { IMAGE_CONFIG } from '@angular/common';
-import {provideRouter, withHashLocation, withRouterConfig} from '@angular/router';
+import {provideRouter, withRouterConfig} from '@angular/router';
 
 import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
@@ -9,7 +9,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes, withHashLocation(), withRouterConfig({onSameUrlNavigation: 'reload'})),
+    provideRouter(routes, withRouterConfig({onSameUrlNavigation: 'reload'})),
     provideHttpClient(withInterceptors([cacheInterceptor])),
     provideAnimationsAsync(),
     { provide: IMAGE_CONFIG, useValue: { disableImageLazyLoadWarning: true, disableImageSizeWarning: true } },
