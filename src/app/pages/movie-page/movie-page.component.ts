@@ -8,6 +8,7 @@ import {MoviePlayerComponent} from "../../components/movie-player/movie-player.c
 import {catchError, of, switchMap, tap} from "rxjs";
 import {PosterComponent} from "../../components/poster/poster.component";
 import {LoggerService} from "../../services/logger.service";
+import {TmdbService} from "../../services/tmdb.service";
 
 interface EpisodeInfo {
   number: number;
@@ -42,6 +43,7 @@ export class MoviePageComponent {
   protected loadingEpisodes = false;
 
   private movieService = inject(MovieService);
+  private tmdbService = inject(TmdbService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private logger = inject(LoggerService);
@@ -57,17 +59,36 @@ export class MoviePageComponent {
     this.route.paramMap.pipe(
       switchMap(params => {
         const id = params.get('id');
-        if (id !== null) {
-          this.movieId = id;
-          return this.movieService.getMovieDetails(this.movieId).pipe(
-            catchError((error) => {
-              this.logger.error('Error fetching movie details: ', error);
+        if (id === null) return of(null);
+
+        // If numeric ID, it's a TMDB ID — resolve to IMDB ID first
+        if (/^\d+$/.test(id)) {
+          return this.tmdbService.getImdbId(+id).pipe(
+            switchMap(imdbId => {
+              if (!imdbId) {
+                this.invalidResponse = true;
+                return of(null);
+              }
+              this.movieId = imdbId;
+              return this.movieService.getMovieDetails(imdbId);
+            }),
+            catchError(error => {
+              this.logger.error('Error resolving TMDB ID: ', error);
               this.invalidResponse = true;
               return of(null);
             })
           );
         }
-        return of(null);
+
+        // Standard IMDB ID
+        this.movieId = id;
+        return this.movieService.getMovieDetails(id).pipe(
+          catchError(error => {
+            this.logger.error('Error fetching movie details: ', error);
+            this.invalidResponse = true;
+            return of(null);
+          })
+        );
       }),
       tap(details => {
         if (details) {

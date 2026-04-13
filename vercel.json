@@ -4,6 +4,10 @@
     "api/suggestions.ts": {
       "memory": 1024,
       "maxDuration": 15
+    },
+    "api/tmdb.ts": {
+      "memory": 1024,
+      "maxDuration": 15
     }
   },
   "buildCommand": "npm run build"
