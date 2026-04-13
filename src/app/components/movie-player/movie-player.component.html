@@ -1,5 +1,5 @@
 @if (safeEmbedUrl) {
-  <div class="w-full">
+  <div class="w-full relative">
     <iframe
       [src]="safeEmbedUrl"
       width="100%"
@@ -7,6 +7,18 @@
       style="aspect-ratio: 16 / 9;"
       allowfullscreen
     ></iframe>
+    <div class="absolute top-2 right-2 flex gap-1.5 z-10">
+      @for (player of players; track player.name; let i = $index) {
+        <button
+          (click)="switchPlayer(i)"
+          class="px-2.5 py-1 text-[11px] font-medium rounded backdrop-blur-sm transition-colors"
+          [class]="i === activePlayer
+            ? 'bg-indigo-600/90 text-white'
+            : 'bg-black/50 text-gray-300 hover:bg-black/70 hover:text-white'">
+          {{ player.name }}
+        </button>
+      }
+    </div>
   </div>
 } @else {
   <div class="flex items-center justify-center py-16 text-gray-400 dark:text-gray-500">

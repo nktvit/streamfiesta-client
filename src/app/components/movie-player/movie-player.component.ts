@@ -1,6 +1,11 @@
 import {Component, inject, input, OnChanges} from '@angular/core';
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
 
+interface PlayerSource {
+  name: string;
+  buildUrl: (type: string, id: string, season: number | null, episode: number | null) => string;
+}
+
 @Component({
   selector: 'app-movie-player',
   imports: [],
@@ -14,28 +19,52 @@ export class MoviePlayerComponent implements OnChanges {
   readonly episode = input<number | null>(null);
 
   safeEmbedUrl: SafeResourceUrl | null = null;
+  activePlayer = 0;
+
+  readonly players: PlayerSource[] = [
+    {
+      name: 'Server 1',
+      buildUrl: (type, id, s, e) => {
+        let url = `https://vidsrc-embed.ru/embed/${type}/${id}`;
+        if (type === 'tv' && s && e) url += `/${s}-${e}`;
+        return url;
+      }
+    },
+    {
+      name: 'Server 2',
+      buildUrl: (type, id, s, e) => {
+        let url = `https://vidsrc.xyz/embed/${type}/${id}`;
+        if (type === 'tv' && s && e) url += `/${s}-${e}`;
+        return url;
+      }
+    },
+    {
+      name: 'Server 3',
+      buildUrl: (type, id, s, e) => {
+        let url = `https://www.NontonGo.win/embed/${type === 'tv' ? 'tv' : 'movie'}/${id}`;
+        if (type === 'tv' && s && e) url += `/${s}/${e}`;
+        return url;
+      }
+    },
+  ];
 
   private sanitizer = inject(DomSanitizer);
 
   ngOnChanges() {
-    this.safeEmbedUrl = this.createSafeEmbedUrl();
+    this.safeEmbedUrl = this.buildUrl();
   }
 
-  private createSafeEmbedUrl(): SafeResourceUrl | null {
-    if (!this.imdbId()) {
-      return null;
-    }
+  switchPlayer(index: number) {
+    this.activePlayer = index;
+    this.safeEmbedUrl = this.buildUrl();
+  }
 
-    const baseUrl = 'https://vidsrc-embed.ru/embed';
+  private buildUrl(): SafeResourceUrl | null {
+    if (!this.imdbId()) return null;
     const type = this.type() === 'tv' ? 'tv' : 'movie';
-    let embedUrl = `${baseUrl}/${type}/${this.imdbId()}`;
-
-    const s = this.season();
-    const e = this.episode();
-    if (type === 'tv' && s && e) {
-      embedUrl += `/${s}-${e}`;
-    }
-
-    return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+    const url = this.players[this.activePlayer].buildUrl(
+      type, this.imdbId(), this.season(), this.episode()
+    );
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 }

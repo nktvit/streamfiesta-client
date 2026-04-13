@@ -66,7 +66,24 @@ export class MoviePageComponent {
       switchMap(params => {
         const id = params.get('id');
         if (id === null) return of(null);
+
+        // Reset state for new movie
+        this.isLoading = true;
+        this.invalidResponse = false;
+        this.movieDetails = {};
+        this.movieDetailsArray = [];
+        this.adjustedPlot = '';
+        this.isFullPlot = false;
+        this.imdbId = null;
+        this.type = 'movie';
+        this.season = null;
+        this.episode = null;
+        this.totalSeasons = 0;
+        this.seasonNumbers = [];
+        this.episodes = [];
+        this.recommendations = [];
         this.originalRouteId = id;
+        window.scrollTo({ top: 0 });
 
         // If numeric ID, it's a TMDB ID — resolve to IMDB ID and redirect
         if (/^\d+$/.test(id)) {
