@@ -28,7 +28,7 @@
     @if (showSearchBox()) {
       <app-search-box class="sm:order-3 w-full sm:w-auto"></app-search-box>
     }
-    <div class="overflow-hidden transition-all duration-300 basis-full grow sm:grow-0 sm:basis-auto sm:block sm:order-2"
+    <div class="overflow-hidden sm:overflow-visible transition-all duration-300 basis-full grow sm:grow-0 sm:basis-auto sm:block sm:order-2"
       [ngClass]="{hidden: !isOpenMenu}">
       <div class="flex flex-col gap-4 mt-4 sm:flex-row sm:items-center sm:mt-0 sm:ps-6">
         <a class="font-medium text-sm transition-colors"
@@ -37,10 +37,38 @@
             : (transparent() ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white')"
           [routerLink]="['/']">Home</a>
         <a class="font-medium text-sm transition-colors"
-          [ngClass]="currentPage === '/about'
+          [ngClass]="currentPage === '/tv'
             ? (transparent() ? 'text-white font-semibold' : 'text-indigo-600 dark:text-indigo-400 font-semibold')
             : (transparent() ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white')"
-          [routerLink]="['/about']">About</a>
+          [routerLink]="['/tv']">TV Shows</a>
+        <a class="font-medium text-sm transition-colors"
+          [ngClass]="currentPage === '/top-rated'
+            ? (transparent() ? 'text-white font-semibold' : 'text-indigo-600 dark:text-indigo-400 font-semibold')
+            : (transparent() ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white')"
+          [routerLink]="['/top-rated']">Top Rated</a>
+        <!-- Genre dropdown -->
+        <div class="relative genre-dropdown">
+          <button (click)="isGenreOpen = !isGenreOpen"
+            class="font-medium text-sm transition-colors flex items-center gap-1"
+            [ngClass]="currentPage.startsWith('/genre')
+              ? (transparent() ? 'text-white font-semibold' : 'text-indigo-600 dark:text-indigo-400 font-semibold')
+              : (transparent() ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white')">
+            Genres
+            <svg class="w-3.5 h-3.5 transition-transform" [ngClass]="{'rotate-180': isGenreOpen}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          @if (isGenreOpen) {
+            <div class="sm:absolute left-0 top-full mt-2 w-56 max-h-72 overflow-y-auto rounded-lg shadow-xl border py-1 z-50
+              bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+              @for (genre of genres; track genre.id) {
+                <a [routerLink]="['/genre', genre.id]"
+                  (click)="isGenreOpen = false; isOpenMenu = false"
+                  class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                  {{ genre.name }}
+                </a>
+              }
+            </div>
+          }
+        </div>
       </div>
     </div>
   </nav>

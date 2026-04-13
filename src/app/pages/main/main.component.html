@@ -116,22 +116,22 @@
       </section>
     }
 
-    <!-- ROW: Popular on Stream Fiesta (disabled for now)
-    @if (popularMovies.length > 0) {
-      <section class="group/row">
-        <h2 class="text-base sm:text-lg md:text-xl font-bold mb-2 sm:mb-3 px-6 md:px-12 lg:px-16 group-hover/row:text-indigo-400 transition-colors">
-          Popular on Stream Fiesta
+    <!-- ROW: Browse by Genre -->
+    @if (genres.length > 0) {
+      <section>
+        <h2 class="text-base sm:text-lg md:text-xl font-bold mb-2 sm:mb-3 px-6 md:px-12 lg:px-16">
+          Browse by Genre
         </h2>
-        <div class="flex gap-1.5 sm:gap-2 md:gap-2.5 overflow-x-auto pb-4 px-6 md:px-12 lg:px-16 scrollbar-hide">
-          @for (movie of popularMovies; track movie.tmdbId ?? movie.imdbID) {
-            <div class="w-[120px] sm:w-[140px] md:w-[170px] lg:w-[190px] flex-shrink-0 transition-transform duration-200 hover:scale-105 hover:z-10">
-              <app-poster [movie]="movie" [displayTitle]="true" class="rounded overflow-hidden"></app-poster>
-            </div>
+        <div class="flex gap-2 sm:gap-2.5 overflow-x-auto pb-4 px-6 md:px-12 lg:px-16 scrollbar-hide">
+          @for (genre of genres; track genre.id) {
+            <a [routerLink]="['/genre', genre.id]"
+              class="flex-shrink-0 px-5 py-2.5 rounded-lg text-sm font-medium bg-white/10 text-gray-200 hover:bg-indigo-600 hover:text-white transition-all duration-200 whitespace-nowrap">
+              {{ genre.name }}
+            </a>
           }
         </div>
       </section>
     }
-    -->
 
     <!-- ROW: In Theaters Now -->
     @if (nowPlayingMovies.length > 0) {

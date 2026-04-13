@@ -20,6 +20,7 @@ export class MainComponent {
   nowPlayingMovies: IMovie[] = [];
   topRatedMovies: IMovie[] = [];
   trendingTV: IMovie[] = [];
+  genres: { id: number; name: string }[] = [];
   loading = true;
 
   private tmdb = inject(TmdbService);
@@ -60,6 +61,8 @@ export class MainComponent {
     this.tmdb.getTrendingTV().subscribe(movies => {
       this.trendingTV = movies.slice(0, 20);
     });
+
+    this.tmdb.getGenres().subscribe(g => this.genres = g);
   }
 
   playHero() {

@@ -1,0 +1,40 @@
+<main class="bg-[#0a0a0a] min-h-screen text-white">
+  <app-navbar [showSearchBox]="true" [transparent]="false"></app-navbar>
+
+  <div class="px-6 md:px-12 lg:px-16 py-8">
+    <h1 class="text-2xl md:text-3xl font-bold mb-6">{{ genreName }} Movies</h1>
+
+    @if (loading) {
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+        @for (_ of [1,2,3,4,5,6,7,8,9,10,11,12]; track $index) {
+          <div class="aspect-[2/3] rounded bg-gray-800 animate-pulse"></div>
+        }
+      </div>
+    } @else {
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+        @for (movie of movies; track movie.tmdbId ?? movie.imdbID) {
+          <div class="transition-transform duration-200 hover:scale-105">
+            <app-poster [movie]="movie" [displayTitle]="true" class="rounded overflow-hidden"></app-poster>
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages > 1) {
+        <div class="flex items-center justify-center gap-4 mt-10">
+          <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"
+            class="px-4 py-2 rounded-lg bg-gray-800 text-sm font-medium hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+            Previous
+          </button>
+          <span class="text-sm text-gray-400">
+            Page {{ currentPage }} of {{ totalPages }}
+          </span>
+          <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+            class="px-4 py-2 rounded-lg bg-gray-800 text-sm font-medium hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+            Next
+          </button>
+        </div>
+      }
+    }
+  </div>
+</main>

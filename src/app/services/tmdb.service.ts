@@ -33,6 +33,26 @@ export class TmdbService {
     return this.fetchList('trending_tv');
   }
 
+  getPopularTV(page: number = 1): Observable<{movies: IMovie[], totalPages: number}> {
+    if (environment.production) {
+      return this.http.get<any>(`/api/tmdb?list=popular_tv&page=${page}`).pipe(
+        map(res => ({ movies: res.movies || [], totalPages: res.totalPages || 0 })),
+        catchError(() => of({ movies: [], totalPages: 0 }))
+      );
+    }
+    return this.http.get<any>(
+      `https://api.themoviedb.org/3/tv/popular?api_key=${(environment as any).TMDB_API_KEY}&language=en-US&page=${page}`
+    ).pipe(
+      map(res => ({
+        movies: (res.results || [])
+          .filter((item: any) => item.original_language !== 'ru' && item.vote_count > 100)
+          .map((item: any) => this.mapMovie(item)),
+        totalPages: res.total_pages || 0
+      })),
+      catchError(() => of({ movies: [], totalPages: 0 }))
+    );
+  }
+
   getRecommendations(tmdbId: number): Observable<IMovie[]> {
     if (environment.production) {
       return this.http.get<any>(`/api/tmdb?list=recommendations&id=${tmdbId}`).pipe(
@@ -106,6 +126,81 @@ export class TmdbService {
         this.logger.error(`Failed to fetch TMDB ${list}:`, err);
         return of([]);
       })
+    );
+  }
+
+  getGenres(): Observable<{id: number, name: string}[]> {
+    if (environment.production) {
+      return this.http.get<any>('/api/tmdb?list=genres').pipe(
+        map(res => res.genres || []),
+        catchError(() => of([]))
+      );
+    }
+    return this.http.get<any>(
+      `https://api.themoviedb.org/3/genre/movie/list?api_key=${(environment as any).TMDB_API_KEY}&language=en-US`
+    ).pipe(
+      map(res => res.genres || []),
+      catchError(() => of([]))
+    );
+  }
+
+  discoverByGenre(genreId: number, page: number = 1): Observable<{movies: IMovie[], totalPages: number}> {
+    if (environment.production) {
+      return this.http.get<any>(`/api/tmdb?list=discover&genre=${genreId}&page=${page}`).pipe(
+        map(res => ({ movies: res.movies || [], totalPages: res.totalPages || 0 })),
+        catchError(() => of({ movies: [], totalPages: 0 }))
+      );
+    }
+    return this.http.get<any>(
+      `https://api.themoviedb.org/3/discover/movie?api_key=${(environment as any).TMDB_API_KEY}&with_genres=${genreId}&sort_by=popularity.desc&vote_count.gte=100&page=${page}&language=en-US`
+    ).pipe(
+      map(res => ({
+        movies: (res.results || [])
+          .filter((item: any) => item.original_language !== 'ru')
+          .map((item: any) => this.mapMovie(item)),
+        totalPages: res.total_pages || 0
+      })),
+      catchError(() => of({ movies: [], totalPages: 0 }))
+    );
+  }
+
+  getUpcoming(page: number = 1): Observable<{movies: IMovie[], totalPages: number}> {
+    if (environment.production) {
+      return this.http.get<any>(`/api/tmdb?list=upcoming&page=${page}`).pipe(
+        map(res => ({ movies: res.movies || [], totalPages: res.totalPages || 0 })),
+        catchError(() => of({ movies: [], totalPages: 0 }))
+      );
+    }
+    return this.http.get<any>(
+      `https://api.themoviedb.org/3/movie/upcoming?api_key=${(environment as any).TMDB_API_KEY}&language=en-US&page=${page}`
+    ).pipe(
+      map(res => ({
+        movies: (res.results || [])
+          .filter((item: any) => item.original_language !== 'ru')
+          .map((item: any) => this.mapMovie(item)),
+        totalPages: res.total_pages || 0
+      })),
+      catchError(() => of({ movies: [], totalPages: 0 }))
+    );
+  }
+
+  getTopRatedPaginated(page: number = 1): Observable<{movies: IMovie[], totalPages: number}> {
+    if (environment.production) {
+      return this.http.get<any>(`/api/tmdb?list=top_rated&page=${page}`).pipe(
+        map(res => ({ movies: res.movies || [], totalPages: res.totalPages || 0 })),
+        catchError(() => of({ movies: [], totalPages: 0 }))
+      );
+    }
+    return this.http.get<any>(
+      `https://api.themoviedb.org/3/movie/top_rated?api_key=${(environment as any).TMDB_API_KEY}&language=en-US&page=${page}`
+    ).pipe(
+      map(res => ({
+        movies: (res.results || [])
+          .filter((item: any) => item.original_language !== 'ru' && item.vote_count > 100)
+          .map((item: any) => this.mapMovie(item)),
+        totalPages: res.total_pages || 0
+      })),
+      catchError(() => of({ movies: [], totalPages: 0 }))
     );
   }
 

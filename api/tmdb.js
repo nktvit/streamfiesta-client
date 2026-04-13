@@ -17,8 +17,12 @@ module.exports = async function handler(req, res) {
     now_playing: 's-maxage=7200, stale-while-revalidate=600',
     top_rated: 's-maxage=86400, stale-while-revalidate=3600',
     trending_tv: 's-maxage=3600, stale-while-revalidate=600',
+    popular_tv: 's-maxage=3600, stale-while-revalidate=600',
     movie: 's-maxage=604800, stale-while-revalidate=86400',
     recommendations: 's-maxage=86400, stale-while-revalidate=3600',
+    genres: 's-maxage=86400, stale-while-revalidate=3600',
+    discover: 's-maxage=3600, stale-while-revalidate=600',
+    upcoming: 's-maxage=7200, stale-while-revalidate=600',
   };
 
   var listParam = req.query.list;
@@ -39,6 +43,8 @@ module.exports = async function handler(req, res) {
     popular: '/movie/popular',
     top_rated: '/movie/top_rated',
     trending_tv: '/trending/tv/week',
+    popular_tv: '/tv/popular',
+    upcoming: '/movie/upcoming',
   };
 
   function mapMovie(item) {
@@ -87,12 +93,32 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ movies: movies });
     }
 
+    if (list === 'genres') {
+      var response = await fetch(TMDB_BASE + '/genre/movie/list?api_key=' + apiKey + '&language=en-US');
+      var data = await response.json();
+      return res.status(200).json({ genres: data.genres || [] });
+    }
+
+    if (list === 'discover') {
+      var genre = req.query.genre || '';
+      var page = req.query.page || '1';
+      var response = await fetch(TMDB_BASE + '/discover/movie?api_key=' + apiKey + '&with_genres=' + genre + '&sort_by=popularity.desc&vote_count.gte=100&page=' + page + '&language=en-US');
+      var data = await response.json();
+      if (!data.results) {
+        return res.status(200).json({ movies: [], totalPages: 0 });
+      }
+      var movies = data.results
+        .filter(function(item) { return item.original_language !== 'ru'; })
+        .map(mapMovie);
+      return res.status(200).json({ movies: movies, totalPages: data.total_pages || 0 });
+    }
+
     var endpoint = list ? LIST_ENDPOINTS[list] : null;
     if (!endpoint) {
       return res.status(400).json({ error: 'Invalid list parameter' });
     }
 
-    var response = await fetch(TMDB_BASE + endpoint + '?api_key=' + apiKey + '&language=en-US&page=1');
+    var response = await fetch(TMDB_BASE + endpoint + '?api_key=' + apiKey + '&language=en-US&page=' + (req.query.page || '1'));
     var data = await response.json();
 
     if (!data.results) {
@@ -102,7 +128,7 @@ module.exports = async function handler(req, res) {
     var movies = data.results
       .filter(function(item) { return item.original_language !== 'ru' && item.vote_count > 100; })
       .map(mapMovie);
-    return res.status(200).json({ movies: movies });
+    return res.status(200).json({ movies: movies, totalPages: data.total_pages || 0 });
   } catch (error) {
     console.error('TMDB API error:', error);
     return res.status(500).json({ error: 'Failed to fetch from TMDB', details: error.message });
