@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 
 @Component({
@@ -7,6 +7,12 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
   templateUrl: './about.component.html',
   styleUrl: './about.component.css'
 })
-export class AboutComponent {
+export class AboutComponent implements OnInit, OnDestroy {
+  ngOnInit() {
+    document.body.classList.add('hide-bmc-widget');
+  }
 
+  ngOnDestroy() {
+    document.body.classList.remove('hide-bmc-widget');
+  }
 }
