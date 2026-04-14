@@ -44,3 +44,4 @@ src/environments
 Thumbs.db
 /.env
 .vercel
+/.playwright-mcp/**
