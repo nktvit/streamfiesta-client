@@ -104,6 +104,7 @@ module.exports = async function handler(req, res) {
           title: ep.name || ('Episode ' + ep.episode_number),
           rating: ep.vote_average ? ep.vote_average.toFixed(1) : null,
           airDate: ep.air_date || null,
+          still: ep.still_path || null,
         };
       });
       return res.status(200).json({ episodes: episodes });

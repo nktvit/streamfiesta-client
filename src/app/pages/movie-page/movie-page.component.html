@@ -197,6 +197,10 @@
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
                     {{ ep.number }}
                   </span>
+                  <!-- Episode thumbnail -->
+                  @if (ep.still) {
+                    <img [src]="ep.still" [alt]="ep.title" class="flex-shrink-0 w-24 h-14 rounded object-cover bg-gray-200 dark:bg-gray-700">
+                  }
                   <!-- Episode info -->
                   <div class="flex-grow min-w-0">
                     <p class="text-sm font-medium truncate"
