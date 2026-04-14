@@ -1,17 +1,12 @@
 import { Component, inject, input, ChangeDetectorRef, SimpleChanges } from '@angular/core';
 import { RouterLink } from "@angular/router";
 import { IMovie } from "../../interfaces/movie.interface";
-import { NgOptimizedImage, NgClass } from "@angular/common";
-import { LoggerService } from "../../services/logger.service";
+import { NgOptimizedImage } from "@angular/common";
 import { TmdbService } from "../../services/tmdb.service";
 
 @Component({
   selector: 'app-poster',
-  imports: [
-    RouterLink,
-    NgOptimizedImage,
-    NgClass
-],
+  imports: [RouterLink, NgOptimizedImage],
   templateUrl: './poster.component.html',
   styleUrl: './poster.component.css'
 })
@@ -21,12 +16,10 @@ export class PosterComponent {
   readonly displayTitle = input<boolean>(false);
   readonly priority = input<boolean>(false);
 
-  isLoading = true;
-  imageUrl: string = '';
-  placeholderUrl: string = '';
+  imageUrl = '';
+  placeholderUrl = '';
 
   private cdr = inject(ChangeDetectorRef);
-  private logger = inject(LoggerService);
   private tmdb = inject(TmdbService);
   private tmdbFetchAttempted = false;
 
@@ -54,7 +47,6 @@ export class PosterComponent {
   }
 
   ngOnInit() {
-    this.logger.log('PosterComponent initialized');
     this.updateImageUrl();
   }
 
@@ -70,7 +62,6 @@ export class PosterComponent {
     if (movie && movie.Poster && movie.Poster !== 'N/A') {
       this.imageUrl = movie.Poster;
     } else if (!this.tmdbFetchAttempted && movie?.imdbID) {
-      // Try TMDB fallback for OMDB results with missing posters
       this.tmdbFetchAttempted = true;
       this.placeholderUrl = this.getPlaceholderUrl();
       this.tmdb.findByImdbId(movie.imdbID).subscribe(result => {
@@ -99,17 +90,9 @@ export class PosterComponent {
     }
   }
 
-  onImageLoad() {
-    this.logger.log('Image loaded successfully');
-    this.isLoading = false;
-    this.cdr.detectChanges();
-  }
-
   onImageError() {
-    this.logger.error('Image failed to load');
     this.imageUrl = '';
     this.placeholderUrl = this.getPlaceholderUrl();
-    this.isLoading = false;
     this.cdr.detectChanges();
   }
 }

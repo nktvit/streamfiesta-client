@@ -4,11 +4,7 @@
   tabindex="0"
   [attr.aria-label]="'View details for ' + movie().Title">
 
-  <div class="poster-content relative w-full h-full">
-    @if (isLoading) {
-      <div class="absolute inset-0 bg-gray-200 animate-pulse"></div>
-    }
-
+  <div class="poster-content relative w-full h-full bg-gray-800 rounded-lg">
     @if (imageUrl) {
       <img
         [ngSrc]="imageUrl"
@@ -16,23 +12,18 @@
         fill
         [priority]="priority()"
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        (load)="onImageLoad()"
         (error)="onImageError()"
-        class="rounded-lg object-cover transition-all duration-300 ease-in-out group-hover:opacity-90"
-        [ngClass]="{'opacity-0': isLoading, 'opacity-100': !isLoading}"
+        class="rounded-lg object-cover group-hover:opacity-90 transition-opacity duration-200"
         >
-    } @else {
+    } @else if (placeholderUrl) {
       <img
         [ngSrc]="placeholderUrl"
         [alt]="movie().Title || 'Movie Poster'"
         [priority]="priority()"
-        (load)="onImageLoad()"
-        class="rounded-lg object-cover transition-all duration-300 ease-in-out group-hover:opacity-90"
-        [ngClass]="{'opacity-0': isLoading, 'opacity-100': !isLoading}"
+        class="rounded-lg object-cover group-hover:opacity-90 transition-opacity duration-200"
         fill
         >
     }
-
 
     @if (displayTitle()) {
       <div
