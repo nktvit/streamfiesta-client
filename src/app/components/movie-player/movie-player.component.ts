@@ -27,7 +27,7 @@ export class MoviePlayerComponent implements OnChanges {
     {
       name: 'Server 1',
       buildUrl: (type, id, s, e) => {
-        let url = `https://vidsrc-embed.ru/embed/${type}/${id}`;
+        let url = `https://vidsrc.me/embed/${type}/${id}`;
         if (type === 'tv' && s && e) url += `/${s}-${e}`;
         return url;
       }
