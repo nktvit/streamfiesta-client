@@ -1,21 +1,13 @@
 import {Routes} from '@angular/router'
-import {MainComponent} from './pages/main/main.component'
-import {SearchPageComponent} from './pages/search-page/search-page.component'
-import {MoviePageComponent} from './pages/movie-page/movie-page.component'
-import {AboutComponent} from './pages/about/about.component'
-import {GenreComponent} from './pages/genre/genre.component'
-import {TopRatedComponent} from './pages/top-rated/top-rated.component'
-import {TvComponent} from './pages/tv/tv.component'
 
 export const routes: Routes = [
-  {path: "", component: MainComponent, data: {mode: 'home'}},
-  {path: 'search', component: SearchPageComponent, data: {mode: 'search'}},
-  {path: 'about', component: AboutComponent},
-  {path: "movie/:id", component: MoviePageComponent},
-  {path: 'genre/:id', component: GenreComponent},
-  {path: 'top-rated', component: TopRatedComponent},
-  {path: 'tv', component: TvComponent},
+  {path: "", loadComponent: () => import('./pages/main/main.component').then(m => m.MainComponent), data: {mode: 'home'}},
+  {path: 'search', loadComponent: () => import('./pages/search-page/search-page.component').then(m => m.SearchPageComponent), data: {mode: 'search'}},
+  {path: 'about', loadComponent: () => import('./pages/about/about.component').then(m => m.AboutComponent)},
+  {path: "movie/:id", loadComponent: () => import('./pages/movie-page/movie-page.component').then(m => m.MoviePageComponent)},
+  {path: 'genre/:id', loadComponent: () => import('./pages/genre/genre.component').then(m => m.GenreComponent)},
+  {path: 'top-rated', loadComponent: () => import('./pages/top-rated/top-rated.component').then(m => m.TopRatedComponent)},
+  {path: 'tv', loadComponent: () => import('./pages/tv/tv.component').then(m => m.TvComponent)},
 
-  // Angular router's navigation strategy
   {path: '**', redirectTo: '', pathMatch: 'full'},
 ]
