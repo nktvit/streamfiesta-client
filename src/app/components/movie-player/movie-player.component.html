@@ -1,12 +1,14 @@
 @if (safeEmbedUrl) {
   <div class="w-full relative">
-    <iframe
-      [src]="safeEmbedUrl"
-      width="100%"
-      class="block"
-      style="aspect-ratio: 16 / 9;"
-      allowfullscreen
-    ></iframe>
+    <div class="relative w-full" style="padding-top: 56.25%;">
+      <iframe
+        [src]="safeEmbedUrl"
+        class="absolute inset-0 w-full h-full"
+        allow="autoplay; fullscreen; encrypted-media"
+        allowfullscreen
+        referrerpolicy="no-referrer"
+      ></iframe>
+    </div>
     <div class="absolute top-2 right-2 flex gap-1.5 z-10">
       @for (player of players; track player.name; let i = $index) {
         <button
