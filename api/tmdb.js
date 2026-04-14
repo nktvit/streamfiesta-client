@@ -113,8 +113,10 @@ module.exports = async function handler(req, res) {
       var data = await response.json();
       var movie = (data.movie_results || [])[0];
       var tv = (data.tv_results || [])[0];
-      var tmdbId = movie ? movie.id : (tv ? tv.id : null);
-      return res.status(200).json({ tmdbId: tmdbId });
+      var match = movie || tv;
+      var tmdbId = match ? match.id : null;
+      var poster = match && match.poster_path ? match.poster_path : null;
+      return res.status(200).json({ tmdbId: tmdbId, poster: poster });
     }
 
     if (list === 'recommendations' && id) {

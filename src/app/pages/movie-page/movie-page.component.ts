@@ -132,6 +132,10 @@ export class MoviePageComponent {
           this.imdbId = this.movieService.getImdbId(details);
           this.type = this.movieService.getMediaType(details);
 
+          if (!details.Poster || details.Poster === 'N/A') {
+            this.fetchTmdbPoster(this.imdbId);
+          }
+
           if (this.type === 'tv') {
             if (!this.season) this.season = 1;
             if (!this.episode) this.episode = 1;
@@ -142,6 +146,14 @@ export class MoviePageComponent {
         this.loadRecommendations();
       })
     ).subscribe();
+  }
+
+  private fetchTmdbPoster(imdbId: string) {
+    this.tmdbService.findPosterByImdbId(imdbId).subscribe(posterUrl => {
+      if (posterUrl) {
+        this.movieDetails = { ...this.movieDetails, Poster: posterUrl };
+      }
+    });
   }
 
   private loadRecommendations() {

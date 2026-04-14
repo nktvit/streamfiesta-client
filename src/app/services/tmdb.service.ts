@@ -94,9 +94,19 @@ export class TmdbService {
   }
 
   findTmdbId(imdbId: string): Observable<number | null> {
+    return this.findByImdbId(imdbId).pipe(map(r => r?.id ?? null));
+  }
+
+  findPosterByImdbId(imdbId: string): Observable<string | null> {
+    return this.findByImdbId(imdbId).pipe(
+      map(r => r?.poster ? `${TMDB_IMAGE_BASE}${r.poster}` : null)
+    );
+  }
+
+  private findByImdbId(imdbId: string): Observable<{ id: number; poster: string | null } | null> {
     if (environment.production) {
       return this.http.get<any>(`/api/tmdb?list=find&id=${imdbId}`).pipe(
-        map(res => res.tmdbId || null),
+        map(res => res.tmdbId ? { id: res.tmdbId, poster: res.poster || null } : null),
         catchError(() => of(null))
       );
     }
@@ -104,9 +114,8 @@ export class TmdbService {
       `https://api.themoviedb.org/3/find/${imdbId}?api_key=${(environment as any).TMDB_API_KEY}&external_source=imdb_id`
     ).pipe(
       map(res => {
-        const movie = (res.movie_results || [])[0];
-        const tv = (res.tv_results || [])[0];
-        return movie ? movie.id : (tv ? tv.id : null);
+        const match = (res.movie_results || [])[0] || (res.tv_results || [])[0];
+        return match ? { id: match.id, poster: match.poster_path || null } : null;
       }),
       catchError(() => of(null))
     );
