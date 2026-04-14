@@ -96,7 +96,7 @@ export class TmdbService {
       map(res => ({
         movies: (res.results || [])
           .filter((item: any) => item.original_language !== 'ru' && item.vote_count > 100)
-          .map((item: any) => this.mapMovie(item)),
+          .map((item: any) => this.mapMovie(item, 'tv')),
         totalPages: res.total_pages || 0
       })),
       catchError(() => of({ movies: [], totalPages: 0 }))
@@ -177,23 +177,43 @@ export class TmdbService {
     );
   }
 
-  getImdbId(tmdbId: number): Observable<string> {
+  getImdbId(tmdbId: number, typeHint?: 'movie' | 'tv'): Observable<string> {
     if (environment.production) {
-      return this.http.get<any>(`/api/tmdb?list=movie&id=${tmdbId}`).pipe(
+      const typeParam = typeHint ? `&type=${typeHint}` : '';
+      return this.http.get<any>(`/api/tmdb?list=movie&id=${tmdbId}${typeParam}`).pipe(
         map(res => res.imdbID || ''),
         catchError(() => of(''))
       );
     }
 
     const apiKey = (environment as any).TMDB_API_KEY;
-    // Try movie first, fall back to TV
+
+    if (typeHint === 'tv') {
+      // TV hint: try TV first, fall back to movie
+      return this.http.get<any>(
+        `https://api.themoviedb.org/3/tv/${tmdbId}/external_ids?api_key=${apiKey}`
+      ).pipe(
+        map(res => res.imdb_id || ''),
+        switchMap(imdbId => {
+          if (imdbId) return of(imdbId);
+          return this.http.get<any>(
+            `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${apiKey}`
+          ).pipe(
+            map(res => res.imdb_id || ''),
+            catchError(() => of(''))
+          );
+        }),
+        catchError(() => of(''))
+      );
+    }
+
+    // Default: try movie first, fall back to TV
     return this.http.get<any>(
       `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${apiKey}`
     ).pipe(
       map(res => res.imdb_id || ''),
       switchMap(imdbId => {
         if (imdbId) return of(imdbId);
-        // Not a movie — try TV external IDs
         return this.http.get<any>(
           `https://api.themoviedb.org/3/tv/${tmdbId}/external_ids?api_key=${apiKey}`
         ).pipe(
@@ -223,12 +243,14 @@ export class TmdbService {
       top_rated: '/movie/top_rated',
       trending_tv: '/trending/tv/week',
     };
+    const tvLists = ['trending_tv'];
+    const mediaType: 'movie' | 'tv' = tvLists.includes(list) ? 'tv' : 'movie';
 
     const url = `https://api.themoviedb.org/3${endpoints[list]}?api_key=${(environment as any).TMDB_API_KEY}&language=en-US&page=1`;
     return this.http.get<any>(url).pipe(
       map(res => (res.results || [])
         .filter((item: any) => item.original_language !== 'ru' && item.vote_count > 100)
-        .map((item: any) => this.mapMovie(item))),
+        .map((item: any) => this.mapMovie(item, mediaType))),
       catchError(err => {
         this.logger.error(`Failed to fetch TMDB ${list}:`, err);
         return of([]);
@@ -311,10 +333,11 @@ export class TmdbService {
     );
   }
 
-  private mapMovie(item: any): IMovie {
+  private mapMovie(item: any, mediaType?: 'movie' | 'tv'): IMovie {
     return {
       imdbID: '',
       tmdbId: item.id,
+      mediaType: mediaType || (item.first_air_date || item.name && !item.title ? 'tv' : 'movie'),
       Title: item.title || item.name || '',
       Poster: item.poster_path ? `${TMDB_IMAGE_BASE}${item.poster_path}` : '',
       Plot: item.overview || '',

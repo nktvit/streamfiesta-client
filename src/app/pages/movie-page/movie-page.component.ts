@@ -103,11 +103,12 @@ export class MoviePageComponent implements OnDestroy {
         // If numeric ID, it's a TMDB ID — resolve to IMDB ID and redirect
         if (/^\d+$/.test(id)) {
           const tmdbId = +id;
-          this.tmdbService.getImdbId(tmdbId).subscribe(imdbId => {
+          const typeHint = this.route.snapshot.queryParams['type'] as 'movie' | 'tv' | undefined;
+          this.tmdbService.getImdbId(tmdbId, typeHint).subscribe(imdbId => {
             if (imdbId) {
               this.router.navigate(['/movie', imdbId], {
                 replaceUrl: true,
-                queryParams: { tmdb: tmdbId },
+                queryParams: { tmdb: tmdbId, type: typeHint || null },
                 queryParamsHandling: 'merge',
               });
             } else {

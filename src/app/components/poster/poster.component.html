@@ -1,5 +1,6 @@
 <div
   [routerLink]="['/movie', movie().imdbID || movie().tmdbId]"
+  [queryParams]="movie().mediaType === 'tv' ? {type: 'tv'} : {}"
   class="poster-container group select-none cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105 min-w-16"
   tabindex="0"
   [attr.aria-label]="'View details for ' + movie().Title">

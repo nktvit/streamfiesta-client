@@ -10,6 +10,7 @@ import { injectSpeedInsights } from '@vercel/speed-insights';
   imports: [RouterOutlet, FooterComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
+  host: { class: 'block min-h-screen' },
 })
 export class AppComponent {
   private nav = inject(NavigationService);

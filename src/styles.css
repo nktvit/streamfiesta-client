@@ -2,7 +2,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-html, body { min-height: 100%; }
+html, body { height: 100%; }
+:root { min-height: 100vh; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background-color: #f9fafb; }
 @media (prefers-color-scheme: dark) { body { background-color: #111827; } }
 

@@ -4,6 +4,7 @@ export interface IMovie {
   Plot: string
   Title: string
   tmdbId?: number
+  mediaType?: 'movie' | 'tv'
   Backdrop?: string
   Rating?: number
   Year?: string
