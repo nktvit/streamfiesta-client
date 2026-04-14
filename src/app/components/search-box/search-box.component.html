@@ -43,11 +43,12 @@
     </div>
 
     <!-- Suggestions Dropdown -->
-    @if (showSuggestions && isFocused) {
+    @if ((showSuggestions || isLoadingSuggestions) && isFocused) {
       <div
-        class="absolute left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-        <!-- Loading indicator -->
-        @if (isLoadingSuggestions) {
+        (scroll)="onSuggestionsScroll($event)"
+        class="suggestions-dropdown absolute left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+        <!-- Loading indicator (initial load) -->
+        @if (isLoadingSuggestions && suggestions.length === 0) {
           <div class="flex items-center justify-center p-4">
             <div class="animate-spin inline-block w-5 h-5 border-2 border-current border-t-transparent text-blue-600 rounded-full" role="status">
               <span class="sr-only">Loading...</span>
@@ -56,13 +57,13 @@
           </div>
         }
         <!-- Suggestions list -->
-        @if (!isLoadingSuggestions && suggestions.length > 0) {
+        @if (suggestions.length > 0) {
           <ul>
-            @for (suggestion of suggestions; track suggestion; let i = $index) {
+            @for (suggestion of suggestions; track suggestion.id; let i = $index) {
               <li
                 (mousedown)="selectSuggestion(suggestion)"
                 [ngClass]="{'bg-blue-50 dark:bg-gray-700': i === selectedSuggestionIndex}"
-                class="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
+                class="suggestion-item flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
                 <!-- Poster thumbnail (if available) -->
                 <div class="flex-shrink-0 w-10 h-14 mr-3 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
                   @if (suggestion.poster) {
@@ -77,13 +78,20 @@
                   }
                 </div>
                 <!-- Title and year -->
-                <div class="flex-grow">
-                  <div class="font-medium text-gray-800 dark:text-white">{{ suggestion.title }}</div>
+                <div class="flex-grow min-w-0">
+                  <div class="font-medium text-gray-800 dark:text-white truncate">{{ suggestion.title }}</div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">{{ suggestion.year }} · {{ suggestion.type | titlecase }}</div>
                 </div>
               </li>
             }
           </ul>
+          <!-- Loading more indicator -->
+          @if (isLoadingMore) {
+            <div class="flex items-center justify-center py-3">
+              <div class="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent text-blue-600 rounded-full"></div>
+              <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">Loading more...</span>
+            </div>
+          }
         }
         <!-- No results -->
         @if (!isLoadingSuggestions && suggestions.length === 0) {

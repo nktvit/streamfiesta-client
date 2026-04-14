@@ -33,6 +33,10 @@ export class SearchBoxComponent implements OnDestroy {
   suggestions: SearchSuggestion[] = [];
   showSuggestions = false;
   isLoadingSuggestions = false;
+  isLoadingMore = false;
+  private suggestionsPage = 1;
+  private totalSuggestions = 0;
+  private lastSuggestionTerm = '';
   private searchTerms = new Subject<string>();
   private destroy$ = new Subject<void>();
   protected selectedSuggestionIndex = -1;
@@ -99,47 +103,76 @@ export class SearchBoxComponent implements OnDestroy {
     }
   }
 
-  async fetchSuggestions(term: string) {
+  async fetchSuggestions(term: string, page: number = 1) {
     if (term.length < 2) return;
 
-    this.isLoadingSuggestions = true;
+    if (page === 1) {
+      this.isLoadingSuggestions = true;
+      this.suggestionsPage = 1;
+      this.totalSuggestions = 0;
+    } else {
+      this.isLoadingMore = true;
+    }
 
     try {
-      let suggestions: SearchSuggestion[] = [];
+      let newSuggestions: SearchSuggestion[] = [];
+      let total = 0;
 
       if (environment.production) {
-        // In production, use the Vercel serverless function (keeps API key server-side)
-        const response = await fetch(`/api/suggestions?q=${encodeURIComponent(term)}`);
+        const response = await fetch(`/api/suggestions?q=${encodeURIComponent(term)}&page=${page}`);
         const data = await response.json();
         if (data.suggestions) {
-          suggestions = data.suggestions;
+          newSuggestions = data.suggestions;
+          total = data.totalResults || data.suggestions.length;
         }
       } else {
-        // In development, call OMDB directly (proxied via Angular dev server)
         const response = await fetch(
-          `https://www.omdbapi.com/?apikey=${environment.OMDB_API_KEY}&s=${encodeURIComponent(term)}`
+          `https://www.omdbapi.com/?apikey=${environment.OMDB_API_KEY}&s=${encodeURIComponent(term)}&page=${page}`
         );
         const data = await response.json();
         if (data.Response === 'True') {
-          suggestions = data.Search.map((item: any) => ({
+          newSuggestions = data.Search.map((item: any) => ({
             id: item.imdbID,
             title: item.Title,
             year: item.Year,
             type: item.Type,
             poster: item.Poster !== 'N/A' ? item.Poster : null
-          })).slice(0, 5);
+          }));
+          total = +data.totalResults;
         }
       }
 
-      this.suggestions = suggestions;
+      if (page === 1) {
+        this.suggestions = newSuggestions;
+        this.totalSuggestions = total;
+      } else {
+        this.suggestions = [...this.suggestions, ...newSuggestions];
+      }
+      this.lastSuggestionTerm = term;
+      this.suggestionsPage = page;
       this.showSuggestions = this.suggestions.length > 0;
       this.selectedSuggestionIndex = -1;
     } catch (error) {
       this.logger.error('Error fetching suggestions:', error);
-      this.suggestions = [];
-      this.showSuggestions = false;
+      if (page === 1) {
+        this.suggestions = [];
+        this.showSuggestions = false;
+      }
     } finally {
       this.isLoadingSuggestions = false;
+      this.isLoadingMore = false;
+    }
+  }
+
+  get hasMoreSuggestions(): boolean {
+    return this.suggestions.length < this.totalSuggestions;
+  }
+
+  onSuggestionsScroll(event: Event) {
+    const el = event.target as HTMLElement;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    if (nearBottom && !this.isLoadingMore && this.hasMoreSuggestions) {
+      this.fetchSuggestions(this.lastSuggestionTerm, this.suggestionsPage + 1);
     }
   }
 
@@ -162,7 +195,12 @@ export class SearchBoxComponent implements OnDestroy {
     this.placeholder = "";
     this.isFocused = true;
     if (this.searchTerm.length >= 2) {
-      this.searchTerms.next(this.searchTerm);
+      // If we already have results for this term, just show them
+      if (this.suggestions.length > 0 && this.lastSuggestionTerm === this.searchTerm) {
+        this.showSuggestions = true;
+      } else {
+        this.searchTerms.next(this.searchTerm);
+      }
     }
   }
 

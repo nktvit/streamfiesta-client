@@ -25,13 +25,15 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'API key is required', suggestions: [] });
     }
 
+    var page = parseInt(req.query.page) || 1;
+
     var response = await fetch(
-      'https://www.omdbapi.com/?apikey=' + apiKey + '&s=' + encodeURIComponent(query)
+      'https://www.omdbapi.com/?apikey=' + apiKey + '&s=' + encodeURIComponent(query) + '&page=' + page
     );
     var data = await response.json();
 
     if (data.Response === 'False') {
-      return res.status(200).json({ suggestions: [], message: data.Error || 'No results found' });
+      return res.status(200).json({ suggestions: [], totalResults: 0, message: data.Error || 'No results found' });
     }
 
     var suggestions = data.Search.map(function(item) {
@@ -42,9 +44,9 @@ module.exports = async function handler(req, res) {
         type: item.Type,
         poster: item.Poster !== 'N/A' ? item.Poster : null
       };
-    }).slice(0, 5);
+    });
 
-    return res.status(200).json({ suggestions: suggestions });
+    return res.status(200).json({ suggestions: suggestions, totalResults: parseInt(data.totalResults) || 0 });
   } catch (error) {
     console.error('Error in suggestions API:', error);
     return res.status(500).json({ error: 'Failed to fetch suggestions', errorDetails: error.message, suggestions: [] });
