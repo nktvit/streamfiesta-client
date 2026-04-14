@@ -131,9 +131,9 @@ export class MoviePageComponent {
           this.type = this.movieService.getMediaType(details);
 
           if (this.type === 'tv') {
-            this.resolveTmdbId();
             if (!this.season) this.season = 1;
             if (!this.episode) this.episode = 1;
+            this.resolveTmdbId();
           }
         }
         this.isLoading = false;
