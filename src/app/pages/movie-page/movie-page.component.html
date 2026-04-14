@@ -24,6 +24,14 @@
           <div class="mx-auto w-full max-w-[280px] md:sticky md:top-4">
             <app-poster class="block overflow-hidden rounded-lg shadow-xl dark:shadow-white/10"
             [movie]="movieDetails"></app-poster>
+            @if (trailerKey) {
+              <button
+                (click)="openTrailer()"
+                class="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-gray-900 dark:bg-white px-4 py-2.5 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-200 transition-colors">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                Watch Trailer
+              </button>
+            }
           </div>
         </div>
         <!-- Details Column -->
@@ -255,4 +263,27 @@
   </div>
 
   <app-adguard-prompt></app-adguard-prompt>
+
+  <!-- Trailer Modal -->
+  @if (showTrailer && trailerUrl) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" (click)="closeTrailer()">
+      <div class="relative w-full max-w-4xl mx-4" (click)="$event.stopPropagation()">
+        <button
+          (click)="closeTrailer()"
+          class="absolute -top-10 right-0 text-white/70 hover:text-white transition-colors text-sm font-medium flex items-center gap-1">
+          Close
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div class="rounded-xl overflow-hidden shadow-2xl">
+          <iframe
+            [src]="trailerUrl"
+            class="w-full"
+            style="aspect-ratio: 16 / 9;"
+            allow="autoplay; encrypted-media"
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+    </div>
+  }
 </main>

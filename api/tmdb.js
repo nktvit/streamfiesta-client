@@ -26,6 +26,7 @@ module.exports = async function handler(req, res) {
     tv_details: 's-maxage=86400, stale-while-revalidate=3600',
     tv_episodes: 's-maxage=86400, stale-while-revalidate=3600',
     find: 's-maxage=604800, stale-while-revalidate=86400',
+    videos: 's-maxage=86400, stale-while-revalidate=3600',
   };
 
   var listParam = req.query.list;
@@ -106,6 +107,14 @@ module.exports = async function handler(req, res) {
         };
       });
       return res.status(200).json({ episodes: episodes });
+    }
+
+    if (list === 'videos' && id) {
+      var mediaType = req.query.type === 'tv' ? 'tv' : 'movie';
+      var response = await fetch(TMDB_BASE + '/' + mediaType + '/' + id + '/videos?api_key=' + apiKey + '&language=en-US');
+      var data = await response.json();
+      var trailer = (data.results || []).find(function(v) { return v.type === 'Trailer' && v.site === 'YouTube'; });
+      return res.status(200).json({ trailerKey: trailer ? trailer.key : null });
     }
 
     if (list === 'find' && id) {

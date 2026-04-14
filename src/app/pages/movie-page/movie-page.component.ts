@@ -2,6 +2,7 @@ import {Component, inject} from '@angular/core';
 import {MovieService} from '../../services/movie.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import { NgClass } from '@angular/common';
+import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
 import {NavbarComponent} from '../../components/navbar/navbar.component';
 import {BackButtonComponent} from '../../components/back-button/back-button.component';
 import {MoviePlayerComponent} from "../../components/movie-player/movie-player.component";
@@ -58,6 +59,7 @@ export class MoviePageComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private logger = inject(LoggerService);
+  private sanitizer = inject(DomSanitizer);
   private titleService = inject(Title);
   private metaService = inject(Meta);
 
@@ -90,6 +92,8 @@ export class MoviePageComponent {
         this.seasonNumbers = [];
         this.episodes = [];
         this.recommendations = [];
+        this.trailerKey = null;
+        this.showTrailer = false;
         this.originalRouteId = id;
         window.scrollTo({ top: 0 });
 
@@ -157,6 +161,7 @@ export class MoviePageComponent {
         }
         this.isLoading = false;
         this.loadRecommendations();
+        this.loadTrailer();
       })
     ).subscribe();
   }
@@ -235,6 +240,41 @@ export class MoviePageComponent {
     this.tmdbService.getRecommendations(tmdbId, this.type).subscribe(movies => {
       this.recommendations = movies.slice(0, 15);
     });
+  }
+
+  private loadTrailer() {
+    const resolvedId = this.tmdbId
+      || +(this.route.snapshot.queryParams['tmdb'] || 0)
+      || (/^\d+$/.test(this.originalRouteId) ? +this.originalRouteId : 0);
+
+    if (resolvedId) {
+      this.tmdbService.getTrailerKey(resolvedId, this.type).subscribe(key => {
+        this.trailerKey = key;
+      });
+    } else if (this.imdbId) {
+      this.tmdbService.findTmdbId(this.imdbId).subscribe(id => {
+        if (id) {
+          this.tmdbService.getTrailerKey(id, this.type).subscribe(key => {
+            this.trailerKey = key;
+          });
+        }
+      });
+    }
+  }
+
+  get trailerUrl(): SafeResourceUrl | null {
+    if (!this.trailerKey) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(
+      `https://www.youtube.com/embed/${this.trailerKey}?autoplay=1`
+    );
+  }
+
+  openTrailer() {
+    this.showTrailer = true;
+  }
+
+  closeTrailer() {
+    this.showTrailer = false;
   }
 
   private resolveTmdbId() {

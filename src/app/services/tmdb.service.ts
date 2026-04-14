@@ -102,6 +102,25 @@ export class TmdbService {
     );
   }
 
+  getTrailerKey(tmdbId: number, type: string = 'movie'): Observable<string | null> {
+    const mediaType = type === 'tv' ? 'tv' : 'movie';
+    if (environment.production) {
+      return this.http.get<any>(`/api/tmdb?list=videos&id=${tmdbId}&type=${mediaType}`).pipe(
+        map(res => res.trailerKey || null),
+        catchError(() => of(null))
+      );
+    }
+    return this.http.get<any>(
+      `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/videos?api_key=${(environment as any).TMDB_API_KEY}&language=en-US`
+    ).pipe(
+      map(res => {
+        const trailer = (res.results || []).find((v: any) => v.type === 'Trailer' && v.site === 'YouTube');
+        return trailer ? trailer.key : null;
+      }),
+      catchError(() => of(null))
+    );
+  }
+
   findTmdbId(imdbId: string): Observable<number | null> {
     return this.findByImdbId(imdbId).pipe(map(r => r?.id ?? null));
   }
