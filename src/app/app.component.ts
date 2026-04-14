@@ -1,16 +1,16 @@
 import { Component, inject } from '@angular/core';
 import { initFlowbite } from "flowbite";
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 import { NavigationService } from './services/navigation.service';
+import { FooterComponent } from './components/footer/footer.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, FooterComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
 export class AppComponent {
-  currentYear = new Date().getFullYear();
   private nav = inject(NavigationService);
 
   ngOnInit() {
