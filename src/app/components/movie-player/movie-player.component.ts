@@ -1,4 +1,4 @@
-import {Component, inject, input, OnChanges} from '@angular/core';
+import {Component, inject, input, output, OnChanges, SimpleChanges} from '@angular/core';
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
 
 interface PlayerSource {
@@ -17,6 +17,8 @@ export class MoviePlayerComponent implements OnChanges {
   readonly type = input<string>('movie');
   readonly season = input<number | null>(null);
   readonly episode = input<number | null>(null);
+  readonly server = input<number>(0);
+  readonly serverChange = output<number>();
 
   safeEmbedUrl: SafeResourceUrl | null = null;
   activePlayer = 0;
@@ -50,13 +52,17 @@ export class MoviePlayerComponent implements OnChanges {
 
   private sanitizer = inject(DomSanitizer);
 
-  ngOnChanges() {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['server']) {
+      this.activePlayer = this.server();
+    }
     this.safeEmbedUrl = this.buildUrl();
   }
 
   switchPlayer(index: number) {
     this.activePlayer = index;
     this.safeEmbedUrl = this.buildUrl();
+    this.serverChange.emit(index);
   }
 
   private buildUrl(): SafeResourceUrl | null {

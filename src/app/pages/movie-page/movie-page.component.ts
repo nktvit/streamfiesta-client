@@ -43,6 +43,7 @@ export class MoviePageComponent {
   protected seasonNumbers: number[] = [];
   protected episodes: EpisodeInfo[] = [];
   protected loadingEpisodes = false;
+  protected server: number = 0;
   protected recommendations: IMovie[] = [];
   protected seasonNames: Map<number, string> = new Map();
   private originalRouteId: string = '';
@@ -60,6 +61,7 @@ export class MoviePageComponent {
     this.route.queryParams.subscribe(params => {
       this.season = params['s'] ? +params['s'] : null;
       this.episode = params['e'] ? +params['e'] : null;
+      this.server = params['srv'] ? +params['srv'] : 0;
     });
 
     this.route.paramMap.pipe(
@@ -236,6 +238,15 @@ export class MoviePageComponent {
   onSeasonChange(seasonNum: number) {
     this.loadEpisodes(seasonNum);
     this.goToEpisode(seasonNum, 1);
+  }
+
+  onServerChange(index: number) {
+    this.server = index;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { srv: index || null },
+      queryParamsHandling: 'merge',
+    });
   }
 
   togglePlot() {

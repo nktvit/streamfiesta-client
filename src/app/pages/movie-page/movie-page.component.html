@@ -126,7 +126,7 @@
         <div class="mt-10 md:mt-16 lg:mt-24 mb-6 md:mb-10 lg:mb-16 rounded-xl bg-white dark:bg-gray-800/60 shadow-lg overflow-hidden">
           <!-- Player -->
           <div class="bg-black">
-            <app-movie-player [imdbId]="imdbId" [type]="type" [season]="season" [episode]="episode"></app-movie-player>
+            <app-movie-player [imdbId]="imdbId" [type]="type" [season]="season" [episode]="episode" [server]="server" (serverChange)="onServerChange($event)"></app-movie-player>
           </div>
 
           <!-- Now playing bar -->
@@ -226,7 +226,7 @@
       <!-- Movie Player (non-series) -->
       @if (type !== 'tv' && imdbId && !invalidResponse) {
         <div class="mt-10 md:mt-16 lg:mt-24 mb-6 md:mb-10 lg:mb-16 rounded-xl overflow-hidden shadow-lg bg-black">
-          <app-movie-player [imdbId]="imdbId" [type]="type" [season]="season" [episode]="episode"></app-movie-player>
+          <app-movie-player [imdbId]="imdbId" [type]="type" [season]="season" [episode]="episode" [server]="server" (serverChange)="onServerChange($event)"></app-movie-player>
         </div>
       }
     </div>
