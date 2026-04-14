@@ -3,6 +3,7 @@ import { RouterLink } from "@angular/router";
 import { IMovie } from "../../interfaces/movie.interface";
 import { NgOptimizedImage, NgClass } from "@angular/common";
 import { LoggerService } from "../../services/logger.service";
+import { TmdbService } from "../../services/tmdb.service";
 
 @Component({
   selector: 'app-poster',
@@ -26,6 +27,8 @@ export class PosterComponent {
 
   private cdr = inject(ChangeDetectorRef);
   private logger = inject(LoggerService);
+  private tmdb = inject(TmdbService);
+  private tmdbFetchAttempted = false;
 
   private getPlaceholderUrl(): string {
     const title = this.movie()?.Title || 'No Title';
@@ -56,21 +59,29 @@ export class PosterComponent {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    this.logger.log('ngOnChanges called', changes);
     if (changes['movie']) {
+      this.tmdbFetchAttempted = false;
       this.updateImageUrl();
     }
   }
 
   updateImageUrl() {
     const movie = this.movie();
-    this.logger.log('updateImageUrl called', movie);
     if (movie && movie.Poster && movie.Poster !== 'N/A') {
       this.imageUrl = movie.Poster;
-      this.logger.log('Using movie poster URL:', this.imageUrl);
+    } else if (!this.tmdbFetchAttempted && movie?.imdbID) {
+      // Try TMDB fallback for OMDB results with missing posters
+      this.tmdbFetchAttempted = true;
+      this.placeholderUrl = this.getPlaceholderUrl();
+      this.tmdb.findByImdbId(movie.imdbID).subscribe(result => {
+        if (result?.poster) {
+          this.imageUrl = result.poster;
+          this.placeholderUrl = '';
+          this.cdr.detectChanges();
+        }
+      });
     } else {
       this.placeholderUrl = this.getPlaceholderUrl();
-      this.logger.log('Using placeholder URL:', this.placeholderUrl);
     }
     this.cdr.detectChanges();
   }
