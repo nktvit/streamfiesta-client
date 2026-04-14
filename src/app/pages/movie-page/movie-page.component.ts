@@ -143,14 +143,23 @@ export class MoviePageComponent {
   }
 
   private loadRecommendations() {
-    // Use TMDB ID from query param or original route ID
     const tmdbParam = this.route.snapshot.queryParams['tmdb'];
     const tmdbId = tmdbParam ? +tmdbParam : (/^\d+$/.test(this.originalRouteId) ? +this.originalRouteId : null);
+
     if (tmdbId) {
-      this.tmdbService.getRecommendations(tmdbId).subscribe(movies => {
-        this.recommendations = movies.slice(0, 15);
+      this.fetchRecommendations(tmdbId);
+    } else if (this.imdbId) {
+      // Resolve TMDB ID from IMDB ID
+      this.tmdbService.findTmdbId(this.imdbId).subscribe(id => {
+        if (id) this.fetchRecommendations(id);
       });
     }
+  }
+
+  private fetchRecommendations(tmdbId: number) {
+    this.tmdbService.getRecommendations(tmdbId, this.type).subscribe(movies => {
+      this.recommendations = movies.slice(0, 15);
+    });
   }
 
   private resolveTmdbId() {

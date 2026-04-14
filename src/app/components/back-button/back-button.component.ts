@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
-import { filter, pairwise } from 'rxjs';
+import { Router } from '@angular/router';
+import { NavigationService } from '../../services/navigation.service';
 
 @Component({
   selector: 'app-back-button',
@@ -9,9 +9,14 @@ import { filter, pairwise } from 'rxjs';
 })
 export class BackButtonComponent {
   private router = inject(Router);
+  private nav = inject(NavigationService);
 
   handleClick() {
-    // Navigate home to avoid iframe history pollution from embedded players
-    this.router.navigate(['/']);
+    const prev = this.nav.back();
+    if (prev) {
+      this.router.navigateByUrl(prev);
+    } else {
+      this.router.navigate(['/']);
+    }
   }
 }

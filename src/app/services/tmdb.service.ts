@@ -93,15 +93,35 @@ export class TmdbService {
     );
   }
 
-  getRecommendations(tmdbId: number): Observable<IMovie[]> {
+  findTmdbId(imdbId: string): Observable<number | null> {
     if (environment.production) {
-      return this.http.get<any>(`/api/tmdb?list=recommendations&id=${tmdbId}`).pipe(
+      return this.http.get<any>(`/api/tmdb?list=find&id=${imdbId}`).pipe(
+        map(res => res.tmdbId || null),
+        catchError(() => of(null))
+      );
+    }
+    return this.http.get<any>(
+      `https://api.themoviedb.org/3/find/${imdbId}?api_key=${(environment as any).TMDB_API_KEY}&external_source=imdb_id`
+    ).pipe(
+      map(res => {
+        const movie = (res.movie_results || [])[0];
+        const tv = (res.tv_results || [])[0];
+        return movie ? movie.id : (tv ? tv.id : null);
+      }),
+      catchError(() => of(null))
+    );
+  }
+
+  getRecommendations(tmdbId: number, type: string = 'movie'): Observable<IMovie[]> {
+    const mediaType = type === 'tv' ? 'tv' : 'movie';
+    if (environment.production) {
+      return this.http.get<any>(`/api/tmdb?list=recommendations&id=${tmdbId}&type=${mediaType}`).pipe(
         map(res => res.movies || []),
         catchError(() => of([]))
       );
     }
 
-    const url = `https://api.themoviedb.org/3/movie/${tmdbId}/recommendations?api_key=${(environment as any).TMDB_API_KEY}&language=en-US&page=1`;
+    const url = `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/recommendations?api_key=${(environment as any).TMDB_API_KEY}&language=en-US&page=1`;
     return this.http.get<any>(url).pipe(
       map(res => (res.results || [])
         .filter((item: any) => item.vote_count > 50)

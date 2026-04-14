@@ -25,6 +25,7 @@ module.exports = async function handler(req, res) {
     upcoming: 's-maxage=7200, stale-while-revalidate=600',
     tv_details: 's-maxage=86400, stale-while-revalidate=3600',
     tv_episodes: 's-maxage=86400, stale-while-revalidate=3600',
+    find: 's-maxage=604800, stale-while-revalidate=86400',
   };
 
   var listParam = req.query.list;
@@ -107,8 +108,18 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ episodes: episodes });
     }
 
+    if (list === 'find' && id) {
+      var response = await fetch(TMDB_BASE + '/find/' + id + '?api_key=' + apiKey + '&external_source=imdb_id');
+      var data = await response.json();
+      var movie = (data.movie_results || [])[0];
+      var tv = (data.tv_results || [])[0];
+      var tmdbId = movie ? movie.id : (tv ? tv.id : null);
+      return res.status(200).json({ tmdbId: tmdbId });
+    }
+
     if (list === 'recommendations' && id) {
-      var response = await fetch(TMDB_BASE + '/movie/' + id + '/recommendations?api_key=' + apiKey + '&language=en-US&page=1');
+      var mediaType = req.query.type === 'tv' ? 'tv' : 'movie';
+      var response = await fetch(TMDB_BASE + '/' + mediaType + '/' + id + '/recommendations?api_key=' + apiKey + '&language=en-US&page=1');
       var data = await response.json();
       if (!data.results) {
         return res.status(200).json({ movies: [] });
