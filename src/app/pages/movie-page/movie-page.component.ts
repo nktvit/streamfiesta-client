@@ -1,7 +1,7 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, PLATFORM_ID, OnDestroy} from '@angular/core';
+import {isPlatformBrowser, NgClass} from '@angular/common';
 import {MovieService} from '../../services/movie.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import { NgClass } from '@angular/common';
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
 import {NavbarComponent} from '../../components/navbar/navbar.component';
 import {BackButtonComponent} from '../../components/back-button/back-button.component';
@@ -28,7 +28,9 @@ interface EpisodeInfo {
   templateUrl: './movie-page.component.html',
   styleUrl: './movie-page.component.css'
 })
-export class MoviePageComponent {
+export class MoviePageComponent implements OnDestroy {
+  private jsonLdElement: HTMLScriptElement | null = null;
+  private platformId = inject(PLATFORM_ID);
   isLoading = true;
   invalidResponse: boolean = false;
   isFullPlot = false;
@@ -130,7 +132,6 @@ export class MoviePageComponent {
         if (details) {
           this.invalidResponse = false;
           this.movieDetails = details;
-          this.updatePageMeta();
           this.logger.log('Movie details: ', details);
 
           // In production, _tmdbId comes from the enriched /api/movie response
@@ -147,6 +148,9 @@ export class MoviePageComponent {
           this.movieDetailsArray = this.movieService.formatMovieDetailsArray(details);
           this.imdbId = this.movieService.getImdbId(details);
           this.type = this.movieService.getMediaType(details);
+
+          // Update page title, meta tags, and JSON-LD
+          this.updatePageMeta();
 
           // In production, gap-filling is done server-side; in dev, do it client-side
           if (!environment.production) {
@@ -218,6 +222,67 @@ export class MoviePageComponent {
     this.metaService.updateTag({ name: 'description', content: desc });
     this.metaService.updateTag({ property: 'og:title', content: pageTitle });
     this.metaService.updateTag({ property: 'og:description', content: desc });
+
+    this.updateJsonLd();
+  }
+
+  private updateJsonLd() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const d = this.movieDetails;
+    if (!d?.Title || d.Title === 'N/A') return;
+
+    const isTV = this.type === 'tv';
+    const schema: any = {
+      '@context': 'https://schema.org',
+      '@type': isTV ? 'TVSeries' : 'Movie',
+      name: d.Title,
+      url: `https://fiesta.show/movie/${this.imdbId || this.originalRouteId}`,
+    };
+
+    if (d.Year && d.Year !== 'N/A') {
+      schema.datePublished = d.Year;
+    }
+    if (this.adjustedPlot) {
+      schema.description = this.adjustedPlot.substring(0, 200);
+    }
+    if (d.Poster && d.Poster !== 'N/A') {
+      schema.image = d.Poster;
+    }
+    if (d.Director && d.Director !== 'N/A') {
+      schema.director = { '@type': 'Person', name: d.Director };
+    }
+    if (d.Genre && d.Genre !== 'N/A') {
+      schema.genre = d.Genre.split(', ');
+    }
+    if (d.imdbRating && d.imdbRating !== 'N/A') {
+      schema.aggregateRating = {
+        '@type': 'AggregateRating',
+        ratingValue: d.imdbRating,
+        bestRating: '10',
+        ratingCount: d.imdbVotes?.replace(/,/g, '') || undefined,
+      };
+    }
+    if (d.Actors && d.Actors !== 'N/A') {
+      schema.actor = d.Actors.split(', ').map((name: string) => ({ '@type': 'Person', name }));
+    }
+
+    // Remove old element if exists
+    if (this.jsonLdElement) {
+      this.jsonLdElement.remove();
+    }
+
+    this.jsonLdElement = document.createElement('script');
+    this.jsonLdElement.type = 'application/ld+json';
+    this.jsonLdElement.text = JSON.stringify(schema);
+    document.head.appendChild(this.jsonLdElement);
+  }
+
+  ngOnDestroy() {
+    if (this.jsonLdElement) {
+      this.jsonLdElement.remove();
+      this.jsonLdElement = null;
+    }
   }
 
   private loadRecommendations() {
