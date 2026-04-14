@@ -67,10 +67,12 @@
                 <!-- Poster thumbnail -->
                 <div class="flex-shrink-0 w-10 h-14 mr-3 rounded overflow-hidden">
                   @if (suggestion.poster) {
-                    <img [src]="suggestion.poster" [alt]="suggestion.title" class="w-full h-full object-cover bg-gray-200 dark:bg-gray-700">
+                    <img [src]="suggestion.poster" [alt]="suggestion.title" class="w-full h-full object-cover bg-gray-200 dark:bg-gray-700"
+                      (error)="suggestion.poster = null"
+                      (load)="$event.target.naturalWidth < 20 ? suggestion.poster = null : null">
                   } @else {
-                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs font-bold leading-tight text-center p-0.5">
-                      {{ suggestion.title.length <= 8 ? suggestion.title : suggestion.title.slice(0, 6) + '...' }}
+                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold leading-none text-center p-0.5" style="font-size: 0.5rem;">
+                      {{ suggestion.title.length <= 6 ? suggestion.title : suggestion.title.slice(0, 4) + '..' }}
                     </div>
                   }
                 </div>
