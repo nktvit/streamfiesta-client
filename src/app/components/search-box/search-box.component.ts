@@ -122,7 +122,10 @@ export class SearchBoxComponent implements OnDestroy {
         const response = await fetch(`/api/suggestions?q=${encodeURIComponent(term)}&page=${page}`);
         const data = await response.json();
         if (data.suggestions) {
-          newSuggestions = data.suggestions;
+          newSuggestions = data.suggestions.map((s: SearchSuggestion) => ({
+            ...s,
+            poster: s.poster ? this.toThumbnail(s.poster) : null
+          }));
           total = data.totalResults || data.suggestions.length;
         }
       } else {
@@ -136,7 +139,7 @@ export class SearchBoxComponent implements OnDestroy {
             title: item.Title,
             year: item.Year,
             type: item.Type,
-            poster: item.Poster !== 'N/A' ? item.Poster : null
+            poster: item.Poster !== 'N/A' ? this.toThumbnail(item.Poster) : null
           }));
           total = +data.totalResults;
         }
@@ -174,6 +177,18 @@ export class SearchBoxComponent implements OnDestroy {
     if (nearBottom && !this.isLoadingMore && this.hasMoreSuggestions) {
       this.fetchSuggestions(this.lastSuggestionTerm, this.suggestionsPage + 1);
     }
+  }
+
+  private toThumbnail(url: string): string {
+    // OMDB/Amazon: SX300 → SX100
+    if (url.includes('media-amazon.com')) {
+      return url.replace(/SX\d+/, 'SX100');
+    }
+    // TMDB: w342 or w500 → w92
+    if (url.includes('image.tmdb.org')) {
+      return url.replace(/\/w\d+\//, '/w92/');
+    }
+    return url;
   }
 
   selectSuggestion(suggestion: SearchSuggestion) {
