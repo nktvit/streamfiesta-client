@@ -20,6 +20,7 @@ interface EpisodeInfo {
   title: string;
   rating: string | null;
   airDate: string | null;
+  still: string | null;
 }
 
 @Component({
@@ -384,6 +385,7 @@ export class MoviePageComponent implements OnDestroy {
           title: ep.Title,
           rating: ep.imdbRating !== 'N/A' ? ep.imdbRating : null,
           airDate: ep.Released !== 'N/A' ? ep.Released : null,
+          still: null,
         }));
         this.loadingEpisodes = false;
       });

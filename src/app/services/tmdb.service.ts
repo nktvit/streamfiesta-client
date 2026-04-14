@@ -77,6 +77,7 @@ export class TmdbService {
         title: ep.name || `Episode ${ep.episode_number}`,
         rating: ep.vote_average ? ep.vote_average.toFixed(1) : null,
         airDate: ep.air_date || null,
+        still: ep.still_path ? 'https://image.tmdb.org/t/p/w300' + ep.still_path : null,
       }))),
       catchError(() => of([]))
     );
