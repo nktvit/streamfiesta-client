@@ -14,8 +14,14 @@ fs.mkdirSync(dir, { recursive: true });
 
 const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
 
-const content = `export const environment = {
-  production: ${isProduction},
+const content = isProduction
+  ? `export const environment = {
+  production: true,
+  OMDB_API_KEY: '',
+};
+`
+  : `export const environment = {
+  production: false,
   OMDB_API_KEY: '${process.env.OMDB_API_KEY || ''}',
 };
 `;

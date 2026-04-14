@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, catchError, map, Observable, of, tap} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
-import {environment} from '../../environments/environment'
+import {environment} from '../../environments/environment';
 import {LoggerService} from "./logger.service";
 
 @Injectable({providedIn: 'root'})
@@ -31,7 +31,9 @@ export class MovieService {
 
   searchMovies(searchTerm: string, page: number = 1): Observable<any> {
     this.currentQuery = searchTerm;
-    const url = `https://www.omdbapi.com/?apikey=${this.API_KEY}&s=${encodeURIComponent(searchTerm)}&page=${page}`;
+    const url = environment.production
+      ? `/api/omdb?action=search&q=${encodeURIComponent(searchTerm)}&page=${page}`
+      : `https://www.omdbapi.com/?apikey=${this.API_KEY}&s=${encodeURIComponent(searchTerm)}&page=${page}`;
 
     return this.http.get<any>(url).pipe(
       tap(response => {
@@ -68,7 +70,9 @@ export class MovieService {
   }
 
   private fetchMovieDetails(id: string): Observable<any> {
-    const url = `https://www.omdbapi.com/?apikey=${this.API_KEY}&i=${encodeURIComponent(id)}&plot=full`;
+    const url = environment.production
+      ? `/api/movie?id=${encodeURIComponent(id)}`
+      : `https://www.omdbapi.com/?apikey=${this.API_KEY}&i=${encodeURIComponent(id)}&plot=full`;
     return this.http.get<any>(url, {observe: 'response'}).pipe(
       map((response) => {
         if (response.ok && response.body && response.body.imdbID) {
@@ -89,7 +93,9 @@ export class MovieService {
   }
 
   getSeasonEpisodes(imdbId: string, season: number): Observable<any[]> {
-    const url = `https://www.omdbapi.com/?apikey=${this.API_KEY}&i=${encodeURIComponent(imdbId)}&Season=${season}`;
+    const url = environment.production
+      ? `/api/omdb?action=episodes&id=${encodeURIComponent(imdbId)}&season=${season}`
+      : `https://www.omdbapi.com/?apikey=${this.API_KEY}&i=${encodeURIComponent(imdbId)}&Season=${season}`;
     return this.http.get<any>(url).pipe(
       map(response => response.Response === 'True' ? response.Episodes : []),
       catchError(() => of([]))

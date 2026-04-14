@@ -4,6 +4,8 @@ import { of, tap } from 'rxjs';
 const cache = new Map<string, { response: HttpResponse<unknown>; timestamp: number }>();
 
 function getCacheDuration(url: string): number {
+  if (url.includes('/api/movie')) return Infinity;
+  if (url.includes('/api/omdb')) return Infinity;
   if (url.includes('omdbapi.com')) return Infinity;
   if (url.includes('/api/tmdb') || url.includes('api.themoviedb.org')) return 600000;
   if (url.includes('/api/suggestions')) return 300000;

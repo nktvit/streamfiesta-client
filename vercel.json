@@ -8,6 +8,14 @@
     "api/tmdb.js": {
       "memory": 1024,
       "maxDuration": 15
+    },
+    "api/movie.js": {
+      "memory": 1024,
+      "maxDuration": 15
+    },
+    "api/omdb.js": {
+      "memory": 1024,
+      "maxDuration": 15
     }
   },
   "buildCommand": "npm run build",

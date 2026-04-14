@@ -11,6 +11,7 @@ import {LoggerService} from "../../services/logger.service";
 import {TmdbService} from "../../services/tmdb.service";
 import {IMovie} from "../../interfaces/movie.interface";
 import {AdguardPromptComponent} from "../../components/adguard-prompt/adguard-prompt.component";
+import {environment} from "../../../environments/environment";
 
 interface EpisodeInfo {
   number: number;
@@ -122,6 +123,11 @@ export class MoviePageComponent {
           this.movieDetails = details;
           this.logger.log('Movie details: ', details);
 
+          // In production, _tmdbId comes from the enriched /api/movie response
+          if (details._tmdbId) {
+            this.tmdbId = details._tmdbId;
+          }
+
           if (details.Plot && details.Plot !== 'N/A') {
             this.adjustedPlot = this.adjustPlot(details.Plot);
             this.isPlotLong = this.adjustedPlot.length > 300;
@@ -132,7 +138,10 @@ export class MoviePageComponent {
           this.imdbId = this.movieService.getImdbId(details);
           this.type = this.movieService.getMediaType(details);
 
-          this.fillMissingFromTmdb(details);
+          // In production, gap-filling is done server-side; in dev, do it client-side
+          if (!environment.production) {
+            this.fillMissingFromTmdb(details);
+          }
 
           if (this.type === 'tv') {
             if (!this.season) this.season = 1;
@@ -181,12 +190,14 @@ export class MoviePageComponent {
 
   private loadRecommendations() {
     const tmdbParam = this.route.snapshot.queryParams['tmdb'];
-    const tmdbId = tmdbParam ? +tmdbParam : (/^\d+$/.test(this.originalRouteId) ? +this.originalRouteId : null);
+    const resolvedId = this.tmdbId
+      || (tmdbParam ? +tmdbParam : null)
+      || (/^\d+$/.test(this.originalRouteId) ? +this.originalRouteId : null);
 
-    if (tmdbId) {
-      this.fetchRecommendations(tmdbId);
+    if (resolvedId) {
+      this.fetchRecommendations(resolvedId);
     } else if (this.imdbId) {
-      // Resolve TMDB ID from IMDB ID
+      // Fallback: resolve via API (dev mode, or if enriched response didn't include tmdbId)
       this.tmdbService.findTmdbId(this.imdbId).subscribe(id => {
         if (id) this.fetchRecommendations(id);
       });
@@ -200,8 +211,10 @@ export class MoviePageComponent {
   }
 
   private resolveTmdbId() {
-    const tmdbParam = this.route.snapshot.queryParams['tmdb'];
-    this.tmdbId = tmdbParam ? +tmdbParam : (/^\d+$/.test(this.originalRouteId) ? +this.originalRouteId : null);
+    if (!this.tmdbId) {
+      const tmdbParam = this.route.snapshot.queryParams['tmdb'];
+      this.tmdbId = tmdbParam ? +tmdbParam : (/^\d+$/.test(this.originalRouteId) ? +this.originalRouteId : null);
+    }
 
     if (this.tmdbId) {
       // Use TMDB for season/episode data (more accurate, especially for anime)
