@@ -178,30 +178,77 @@
           </div>
 
           <!-- Episode list -->
-          <div class="max-h-72 overflow-y-auto">
-            @if (loadingEpisodes) {
-              <div class="flex items-center justify-center py-8">
-                <div class="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
-              </div>
-            } @else {
+          @if (loadingEpisodes) {
+            <div class="flex items-center justify-center py-8">
+              <div class="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
+            </div>
+          } @else if (episodes.length > 0 && episodes[0].still) {
+            <!-- Horizontal scroll with thumbnails -->
+            <div class="flex gap-3 overflow-x-auto px-5 py-4 scrollbar-hide">
+              @for (ep of episodes; track ep.number) {
+                <button (click)="goToEpisode(season!, ep.number)"
+                  class="flex-shrink-0 w-48 rounded-lg overflow-hidden text-left transition-all"
+                  [ngClass]="ep.number === episode
+                    ? 'ring-2 ring-indigo-500 shadow-lg'
+                    : 'hover:shadow-md hover:scale-[1.02]'">
+                  <!-- Thumbnail -->
+                  <div class="relative">
+                    <img [src]="ep.still" [alt]="ep.title" class="w-full h-28 object-cover bg-gray-200 dark:bg-gray-700">
+                    <!-- Episode number overlay -->
+                    <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold"
+                      [ngClass]="ep.number === episode
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-black/60 text-white'">
+                      {{ ep.number }}
+                    </span>
+                    <!-- Playing indicator overlay -->
+                    @if (ep.number === episode) {
+                      <div class="absolute inset-0 bg-indigo-600/20 flex items-center justify-center">
+                        <span class="flex items-center gap-0.5">
+                          <span class="w-0.5 h-3 bg-white rounded-full animate-pulse"></span>
+                          <span class="w-0.5 h-4 bg-white rounded-full animate-pulse" style="animation-delay: 0.15s"></span>
+                          <span class="w-0.5 h-2.5 bg-white rounded-full animate-pulse" style="animation-delay: 0.3s"></span>
+                        </span>
+                      </div>
+                    }
+                    <!-- Rating overlay -->
+                    @if (ep.rating) {
+                      <span class="absolute top-1.5 right-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-black/60 text-[10px] font-medium text-yellow-400">
+                        <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        {{ ep.rating }}
+                      </span>
+                    }
+                  </div>
+                  <!-- Info -->
+                  <div class="px-2.5 py-2 bg-white dark:bg-gray-800">
+                    <p class="text-xs font-medium truncate"
+                      [ngClass]="ep.number === episode
+                        ? 'text-indigo-600 dark:text-indigo-400'
+                        : 'text-gray-900 dark:text-white'">
+                      {{ ep.title }}
+                    </p>
+                    @if (ep.airDate) {
+                      <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{{ ep.airDate }}</p>
+                    }
+                  </div>
+                </button>
+              }
+            </div>
+          } @else {
+            <!-- Vertical list fallback (no thumbnails) -->
+            <div class="max-h-72 overflow-y-auto">
               @for (ep of episodes; track ep.number) {
                 <button (click)="goToEpisode(season!, ep.number)"
                   class="w-full flex items-center gap-4 px-5 py-3 text-left transition-colors border-b border-gray-100 dark:border-gray-700/30 last:border-0"
                   [ngClass]="ep.number === episode
                     ? 'bg-indigo-50 dark:bg-indigo-900/20'
                     : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'">
-                  <!-- Episode number -->
                   <span class="flex-shrink-0 w-8 h-8 rounded-md flex items-center justify-center text-xs font-bold"
                     [ngClass]="ep.number === episode
                       ? 'bg-indigo-600 text-white'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
                     {{ ep.number }}
                   </span>
-                  <!-- Episode thumbnail -->
-                  @if (ep.still) {
-                    <img [src]="ep.still" [alt]="ep.title" class="flex-shrink-0 w-24 h-14 rounded object-cover bg-gray-200 dark:bg-gray-700">
-                  }
-                  <!-- Episode info -->
                   <div class="flex-grow min-w-0">
                     <p class="text-sm font-medium truncate"
                       [ngClass]="ep.number === episode
@@ -213,14 +260,12 @@
                       <p class="text-xs text-gray-400 dark:text-gray-500">{{ ep.airDate }}</p>
                     }
                   </div>
-                  <!-- Rating -->
                   @if (ep.rating) {
                     <span class="flex-shrink-0 inline-flex items-center gap-1 text-xs font-medium text-yellow-600 dark:text-yellow-400">
                       <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                       {{ ep.rating }}
                     </span>
                   }
-                  <!-- Playing indicator -->
                   @if (ep.number === episode) {
                     <span class="flex-shrink-0 flex items-center gap-0.5">
                       <span class="w-0.5 h-3 bg-indigo-500 rounded-full animate-pulse"></span>
@@ -230,8 +275,8 @@
                   }
                 </button>
               }
-            }
-          </div>
+            </div>
+          }
         </div>
       }
 
