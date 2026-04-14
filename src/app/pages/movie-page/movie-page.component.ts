@@ -132,9 +132,7 @@ export class MoviePageComponent {
           this.imdbId = this.movieService.getImdbId(details);
           this.type = this.movieService.getMediaType(details);
 
-          if (!details.Poster || details.Poster === 'N/A') {
-            this.fetchTmdbPoster(this.imdbId);
-          }
+          this.fillMissingFromTmdb(details);
 
           if (this.type === 'tv') {
             if (!this.season) this.season = 1;
@@ -148,10 +146,35 @@ export class MoviePageComponent {
     ).subscribe();
   }
 
-  private fetchTmdbPoster(imdbId: string) {
-    this.tmdbService.findPosterByImdbId(imdbId).subscribe(posterUrl => {
-      if (posterUrl) {
-        this.movieDetails = { ...this.movieDetails, Poster: posterUrl };
+  private fillMissingFromTmdb(details: any) {
+    const na = (v: any) => !v || v === 'N/A';
+    const needsPoster = na(details.Poster);
+    const needsPlot = na(details.Plot);
+    const needsRating = na(details.imdbRating) && (!details.Ratings || details.Ratings.length === 0);
+    const needsYear = na(details.Year);
+
+    if (!needsPoster && !needsPlot && !needsRating && !needsYear) return;
+
+    this.tmdbService.findByImdbId(this.imdbId).subscribe(tmdb => {
+      if (!tmdb) return;
+      const patch: any = {};
+
+      if (needsPoster && tmdb.poster) patch.Poster = tmdb.poster;
+      if (needsYear && tmdb.releaseDate) patch.Year = tmdb.releaseDate.substring(0, 4);
+      if (needsRating && tmdb.rating) {
+        patch.imdbRating = tmdb.rating.toFixed(1);
+        patch.Ratings = [{ Source: 'TMDB', Value: `${tmdb.rating.toFixed(1)}/10` }];
+      }
+
+      if (Object.keys(patch).length > 0) {
+        this.movieDetails = { ...this.movieDetails, ...patch };
+        this.movieDetailsArray = this.movieService.formatMovieDetailsArray(this.movieDetails);
+      }
+
+      if (needsPlot && tmdb.overview) {
+        this.adjustedPlot = this.adjustPlot(tmdb.overview);
+        this.isPlotLong = this.adjustedPlot.length > 300;
+        this.shouldClamp = !this.isFullPlot && this.isPlotLong;
       }
     });
   }

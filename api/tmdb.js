@@ -114,9 +114,15 @@ module.exports = async function handler(req, res) {
       var movie = (data.movie_results || [])[0];
       var tv = (data.tv_results || [])[0];
       var match = movie || tv;
-      var tmdbId = match ? match.id : null;
-      var poster = match && match.poster_path ? match.poster_path : null;
-      return res.status(200).json({ tmdbId: tmdbId, poster: poster });
+      if (!match) return res.status(200).json({ tmdbId: null });
+      return res.status(200).json({
+        tmdbId: match.id,
+        poster: match.poster_path || null,
+        backdrop: match.backdrop_path || null,
+        overview: match.overview || null,
+        rating: match.vote_average || null,
+        releaseDate: match.release_date || match.first_air_date || null,
+      });
     }
 
     if (list === 'recommendations' && id) {

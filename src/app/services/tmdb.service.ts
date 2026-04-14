@@ -8,6 +8,15 @@ import { LoggerService } from './logger.service';
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w342';
 const TMDB_BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
 
+export interface TmdbFindResult {
+  id: number;
+  poster: string | null;
+  backdrop: string | null;
+  overview: string | null;
+  rating: number | null;
+  releaseDate: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TmdbService {
   private http = inject(HttpClient);
@@ -97,16 +106,17 @@ export class TmdbService {
     return this.findByImdbId(imdbId).pipe(map(r => r?.id ?? null));
   }
 
-  findPosterByImdbId(imdbId: string): Observable<string | null> {
-    return this.findByImdbId(imdbId).pipe(
-      map(r => r?.poster ? `${TMDB_IMAGE_BASE}${r.poster}` : null)
-    );
-  }
-
-  private findByImdbId(imdbId: string): Observable<{ id: number; poster: string | null } | null> {
+  findByImdbId(imdbId: string): Observable<TmdbFindResult | null> {
     if (environment.production) {
       return this.http.get<any>(`/api/tmdb?list=find&id=${imdbId}`).pipe(
-        map(res => res.tmdbId ? { id: res.tmdbId, poster: res.poster || null } : null),
+        map(res => res.tmdbId ? {
+          id: res.tmdbId,
+          poster: res.poster ? `${TMDB_IMAGE_BASE}${res.poster}` : null,
+          backdrop: res.backdrop ? `${TMDB_BACKDROP_BASE}${res.backdrop}` : null,
+          overview: res.overview || null,
+          rating: res.rating || null,
+          releaseDate: res.releaseDate || null,
+        } : null),
         catchError(() => of(null))
       );
     }
@@ -115,7 +125,15 @@ export class TmdbService {
     ).pipe(
       map(res => {
         const match = (res.movie_results || [])[0] || (res.tv_results || [])[0];
-        return match ? { id: match.id, poster: match.poster_path || null } : null;
+        if (!match) return null;
+        return {
+          id: match.id,
+          poster: match.poster_path ? `${TMDB_IMAGE_BASE}${match.poster_path}` : null,
+          backdrop: match.backdrop_path ? `${TMDB_BACKDROP_BASE}${match.backdrop_path}` : null,
+          overview: match.overview || null,
+          rating: match.vote_average || null,
+          releaseDate: match.release_date || match.first_air_date || null,
+        };
       }),
       catchError(() => of(null))
     );
