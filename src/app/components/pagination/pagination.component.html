@@ -1,5 +1,54 @@
 @if (totalPages > 1) {
-  <mat-paginator [length]="totalResults()" [pageSize]="itemsPerPage" [pageIndex]="currentPage - 1"
-    (page)="paginate($event)">
-  </mat-paginator>
+  <nav class="flex items-center justify-center gap-1 py-4" aria-label="Pagination">
+    <!-- Previous button -->
+    <button
+      (click)="goToPage(currentPage - 1)"
+      [disabled]="currentPage === 1"
+      class="px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+      &laquo; Prev
+    </button>
+
+    <!-- First page + ellipsis -->
+    @if (visiblePages[0] > 1) {
+      <button
+        (click)="goToPage(1)"
+        class="w-10 h-10 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+        1
+      </button>
+      @if (visiblePages[0] > 2) {
+        <span class="px-1 text-gray-500">...</span>
+      }
+    }
+
+    <!-- Visible page buttons -->
+    @for (page of visiblePages; track page) {
+      <button
+        (click)="goToPage(page)"
+        [class]="page === currentPage
+          ? 'w-10 h-10 rounded-lg text-sm font-bold bg-white/20 text-white'
+          : 'w-10 h-10 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 transition-colors'">
+        {{ page }}
+      </button>
+    }
+
+    <!-- Last page + ellipsis -->
+    @if (visiblePages[visiblePages.length - 1] < totalPages) {
+      @if (visiblePages[visiblePages.length - 1] < totalPages - 1) {
+        <span class="px-1 text-gray-500">...</span>
+      }
+      <button
+        (click)="goToPage(totalPages)"
+        class="w-10 h-10 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+        {{ totalPages }}
+      </button>
+    }
+
+    <!-- Next button -->
+    <button
+      (click)="goToPage(currentPage + 1)"
+      [disabled]="currentPage === totalPages"
+      class="px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+      Next &raquo;
+    </button>
+  </nav>
 }

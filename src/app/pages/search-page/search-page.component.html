@@ -1,15 +1,23 @@
-<main class="bg-gray-50 dark:bg-gray-900 flex-grow flex flex-col">
+<main class="bg-[#0a0a0a] min-h-screen text-white">
   <app-navbar [showSearchBox]="true"></app-navbar>
   <div class="container max-w-6xl flex-grow flex flex-col mx-auto my-6">
     @if (isLoading) {
       <div class="flex-grow flex items-center justify-center">
-        <span>Loading...</span>
+        <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
       </div>
     }
 
     @if (!isLoading) {
       @if (movies.length > 0) {
-        <app-movies-grid [movies]="movies"></app-movies-grid>
+        <p class="px-8 pt-2 pb-1 text-sm text-gray-400">{{ totalResults }} results found</p>
+        <div class="px-8 py-6 mb-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          @for (movie of movies; track movie.imdbID) {
+            <app-poster [movie]="movie" [displayTitle]="true"></app-poster>
+          }
+        </div>
         <app-pagination [totalResults]="totalResults" (pageChanged)="onPageChange($event)"></app-pagination>
       }
       @if (!isLoading && movies.length === 0) {

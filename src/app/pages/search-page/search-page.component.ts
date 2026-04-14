@@ -1,6 +1,6 @@
 import {Component, inject} from '@angular/core';
 import {Title, Meta} from '@angular/platform-browser';
-import {MoviesGridComponent} from '../../components/movies-grid/movies-grid.component';
+import {PosterComponent} from '../../components/poster/poster.component';
 import {MovieService} from '../../services/movie.service';
 import {PaginationComponent} from '../../components/pagination/pagination.component';
 import {NavbarComponent} from '../../components/navbar/navbar.component';
@@ -12,7 +12,7 @@ import {LoggerService} from "../../services/logger.service";
 
 @Component({
   selector: 'app-search-page',
-  imports: [MoviesGridComponent, PaginationComponent, NavbarComponent, NotfoundComponent],
+  imports: [PosterComponent, PaginationComponent, NavbarComponent, NotfoundComponent],
   templateUrl: './search-page.component.html',
   styleUrl: './search-page.component.css'
 })

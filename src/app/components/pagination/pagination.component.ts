@@ -1,11 +1,10 @@
-import { Component, inject, input, output, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, inject, input, output, OnChanges, SimpleChanges, computed } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { MatPaginatorModule } from '@angular/material/paginator';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-pagination',
-  imports: [MatPaginatorModule],
+  imports: [],
   templateUrl: './pagination.component.html',
   styleUrls: ['./pagination.component.css'],
 })
@@ -16,7 +15,6 @@ export class PaginationComponent implements OnChanges {
   currentPage: number = 1;
 
   readonly itemsPerPage: number = 10;
-  pages: any[] = [];
   private initialPageSet: boolean = false;
   private routeSubscription?: Subscription;
 
@@ -38,23 +36,30 @@ export class PaginationComponent implements OnChanges {
 
   private initializePagination(): void {
     this.totalPages = Math.ceil(this.totalResults() / this.itemsPerPage);
-    this.generatePagesArray();
 
     if (!this.initialPageSet) {
       this.routeSubscription = this.route.queryParams.subscribe(params => {
         this.currentPage = +params['page'] || 1;
-        // this.pageChanged.emit(this.currentPage);
         this.initialPageSet = true;
       });
     }
   }
 
-  private generatePagesArray(): void {
-    this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+    this.currentPage = page;
+    this.pageChanged.emit(page);
   }
 
-  paginate(e: any): void {
-    this.currentPage = e.pageIndex+1;
-    this.pageChanged.emit(e.pageIndex+1);
+  get visiblePages(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    start = Math.max(1, end - maxVisible + 1);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 }
