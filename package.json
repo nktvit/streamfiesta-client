@@ -2,7 +2,6 @@
   "name": "movie-streamer",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
     "prebuild": "node scripts/set-env.js",
     "start": "ng serve",
     "build": "ng build",
@@ -33,6 +32,7 @@
     "@tailwindcss/typography": "^0.5.15",
     "@vercel/analytics": "^1.5.0",
     "@vercel/node": "^5.1.14",
+    "@vercel/speed-insights": "^2.0.0",
     "flowbite": "^3.1.2",
     "rxjs": "~7.8.1",
     "tslib": "^2.8.1",
