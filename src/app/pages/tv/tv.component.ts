@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { Title, Meta } from '@angular/platform-browser';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { PosterComponent } from '../../components/poster/poster.component';
 import { TmdbService } from '../../services/tmdb.service';
@@ -18,8 +19,12 @@ export class TvComponent {
   loading = true;
 
   private tmdb = inject(TmdbService);
+  private titleService = inject(Title);
+  private metaService = inject(Meta);
 
   ngOnInit() {
+    this.titleService.setTitle('TV Shows — Trending & Popular | Stream Fiesta');
+    this.metaService.updateTag({ name: 'description', content: 'Browse trending and popular TV shows. Watch free, no sign-up.' });
     this.tmdb.getTrendingTV().subscribe(movies => {
       this.trendingTV = movies.slice(0, 15);
     });

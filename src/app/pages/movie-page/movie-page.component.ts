@@ -12,6 +12,7 @@ import {TmdbService} from "../../services/tmdb.service";
 import {IMovie} from "../../interfaces/movie.interface";
 import {AdguardPromptComponent} from "../../components/adguard-prompt/adguard-prompt.component";
 import {environment} from "../../../environments/environment";
+import {Title, Meta} from '@angular/platform-browser';
 
 interface EpisodeInfo {
   number: number;
@@ -47,6 +48,8 @@ export class MoviePageComponent {
   protected server: number = 0;
   protected recommendations: IMovie[] = [];
   protected seasonNames: Map<number, string> = new Map();
+  protected trailerKey: string | null = null;
+  protected showTrailer = false;
   private originalRouteId: string = '';
   private tmdbId: number | null = null;
 
@@ -55,6 +58,8 @@ export class MoviePageComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private logger = inject(LoggerService);
+  private titleService = inject(Title);
+  private metaService = inject(Meta);
 
   ngOnInit() {
     this.isLoading = true;
@@ -121,6 +126,7 @@ export class MoviePageComponent {
         if (details) {
           this.invalidResponse = false;
           this.movieDetails = details;
+          this.updatePageMeta();
           this.logger.log('Movie details: ', details);
 
           // In production, _tmdbId comes from the enriched /api/movie response
@@ -185,7 +191,28 @@ export class MoviePageComponent {
         this.isPlotLong = this.adjustedPlot.length > 300;
         this.shouldClamp = !this.isFullPlot && this.isPlotLong;
       }
+
+      this.updatePageMeta();
     });
+  }
+
+  private updatePageMeta() {
+    const title = this.movieDetails?.Title;
+    const year = this.movieDetails?.Year;
+    const plot = this.adjustedPlot;
+
+    if (!title || title === 'N/A') return;
+
+    const yearSuffix = year && year !== 'N/A' ? ` (${year})` : '';
+    const pageTitle = `${title}${yearSuffix} — Stream Free | Stream Fiesta`;
+    const desc = plot
+      ? `Watch ${title}${yearSuffix} online for free. ${plot.substring(0, 120)}...`
+      : `Watch ${title}${yearSuffix} online for free on Stream Fiesta. No subscription, no sign-up.`;
+
+    this.titleService.setTitle(pageTitle);
+    this.metaService.updateTag({ name: 'description', content: desc });
+    this.metaService.updateTag({ property: 'og:title', content: pageTitle });
+    this.metaService.updateTag({ property: 'og:description', content: desc });
   }
 
   private loadRecommendations() {

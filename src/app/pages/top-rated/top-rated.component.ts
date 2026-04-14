@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { Title, Meta } from '@angular/platform-browser';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { PosterComponent } from '../../components/poster/poster.component';
 import { TmdbService } from '../../services/tmdb.service';
@@ -17,8 +18,12 @@ export class TopRatedComponent {
   loading = true;
 
   private tmdb = inject(TmdbService);
+  private titleService = inject(Title);
+  private metaService = inject(Meta);
 
   ngOnInit() {
+    this.titleService.setTitle('Top Rated Movies of All Time | Stream Fiesta');
+    this.metaService.updateTag({ name: 'description', content: 'The highest-rated movies of all time. Watch free, no sign-up.' });
     this.loadMovies();
   }
 

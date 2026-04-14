@@ -1,4 +1,5 @@
 import {Component, inject} from '@angular/core'
+import {Title, Meta} from '@angular/platform-browser'
 import {Router, RouterLink} from '@angular/router'
 import {DecimalPipe} from '@angular/common'
 import {SearchBoxComponent} from '../../components/search-box/search-box.component'
@@ -25,8 +26,15 @@ export class MainComponent {
 
   private tmdb = inject(TmdbService);
   private router = inject(Router);
+  private titleService = inject(Title);
+  private metaService = inject(Meta);
 
   ngOnInit() {
+    this.titleService.setTitle('Stream Fiesta — Watch Movies & TV Shows Free');
+    this.metaService.updateTag({ name: 'description', content: 'Watch trending movies, TV shows, and series for free. No subscription, no sign-up. Just press play.' });
+    this.metaService.updateTag({ property: 'og:title', content: 'Stream Fiesta — Watch Movies & TV Shows Free' });
+    this.metaService.updateTag({ property: 'og:description', content: 'Watch trending movies, TV shows, and series for free. No subscription, no sign-up. Just press play.' });
+
     this.tmdb.getTrending().subscribe(movies => {
       if (movies.length > 0) {
         // Pick a random hero from the top 5 trending with a backdrop

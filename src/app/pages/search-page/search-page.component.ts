@@ -1,4 +1,5 @@
 import {Component, inject} from '@angular/core';
+import {Title, Meta} from '@angular/platform-browser';
 import {MoviesGridComponent} from '../../components/movies-grid/movies-grid.component';
 import {MovieService} from '../../services/movie.service';
 import {PaginationComponent} from '../../components/pagination/pagination.component';
@@ -26,6 +27,8 @@ export class SearchPageComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private logger = inject(LoggerService);
+  private titleService = inject(Title);
+  private metaService = inject(Meta);
 
   loadMovies(prompt: string, page: number) {
     this.isLoading = true;
@@ -54,6 +57,10 @@ export class SearchPageComponent {
     // Handling initial query param
     this.route.queryParams.subscribe(params => {
       const query = params['query'];
+      if (query) {
+        this.titleService.setTitle(`Search "${query}" | Stream Fiesta`);
+        this.metaService.updateTag({ name: 'description', content: `Search results for "${query}" — watch free on Stream Fiesta.` });
+      }
       const page: number = params['page'] || 1; // Default page 1
 
       if (query && this.movies.length === 0) {

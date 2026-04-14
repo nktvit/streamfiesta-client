@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Title, Meta } from '@angular/platform-browser';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 
 @Component({
@@ -8,7 +9,12 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
   styleUrl: './about.component.css'
 })
 export class AboutComponent implements OnInit, OnDestroy {
+  private titleService = inject(Title);
+  private metaService = inject(Meta);
+
   ngOnInit() {
+    this.titleService.setTitle('About | Stream Fiesta');
+    this.metaService.updateTag({ name: 'description', content: 'About Stream Fiesta — your free movie and TV streaming platform.' });
     document.body.classList.add('hide-bmc-widget');
   }
 

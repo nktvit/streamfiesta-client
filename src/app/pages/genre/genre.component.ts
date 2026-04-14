@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { Title, Meta } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { PosterComponent } from '../../components/poster/poster.component';
@@ -21,6 +22,8 @@ export class GenreComponent {
 
   private route = inject(ActivatedRoute);
   private tmdb = inject(TmdbService);
+  private titleService = inject(Title);
+  private metaService = inject(Meta);
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -35,6 +38,10 @@ export class GenreComponent {
     this.tmdb.getGenres().subscribe(genres => {
       const genre = genres.find(g => g.id === this.genreId);
       this.genreName = genre ? genre.name : 'Genre';
+      this.titleService.setTitle(`${this.genreName} Movies — Stream Free | Stream Fiesta`);
+      this.metaService.updateTag({ name: 'description', content: `Browse popular ${this.genreName} movies and watch for free. No subscription needed.` });
+      this.metaService.updateTag({ property: 'og:title', content: `${this.genreName} Movies — Stream Free | Stream Fiesta` });
+      this.metaService.updateTag({ property: 'og:description', content: `Browse popular ${this.genreName} movies and watch for free. No subscription needed.` });
     });
   }
 
