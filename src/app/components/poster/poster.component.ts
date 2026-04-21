@@ -17,36 +17,12 @@ export class PosterComponent {
   readonly priority = input<boolean>(false);
 
   imageUrl = '';
-  placeholderUrl = '';
 
   private cdr = inject(ChangeDetectorRef);
   private tmdb = inject(TmdbService);
   private tmdbFetchAttempted = false;
 
-  private getPlaceholderUrl(): string {
-    const title = this.movie()?.Title || 'No Title';
-    const words = title.split(' ');
-
-    if (words.length <= 3) {
-      return `https://placehold.co/300x440?text=${encodeURIComponent(title)}&font=roboto`;
-    }
-
-    const chunks: string[] = [];
-    let currentChunk: string[] = [];
-
-    words.forEach((word, index) => {
-      currentChunk.push(word);
-      if (currentChunk.length === 3 || index === words.length - 1) {
-        chunks.push(currentChunk.join(' '));
-        currentChunk = [];
-      }
-    });
-
-    const formattedTitle = chunks.join('\\n');
-    return `https://placehold.co/300x440?text=${encodeURIComponent(formattedTitle)}&font=roboto`;
-  }
-
-  ngOnInit() {
+ngOnInit() {
     this.updateImageUrl();
   }
 
@@ -63,16 +39,12 @@ export class PosterComponent {
       this.imageUrl = movie.Poster;
     } else if (!this.tmdbFetchAttempted && movie?.imdbID) {
       this.tmdbFetchAttempted = true;
-      this.placeholderUrl = this.getPlaceholderUrl();
       this.tmdb.findByImdbId(movie.imdbID).subscribe(result => {
         if (result?.poster) {
           this.imageUrl = result.poster;
-          this.placeholderUrl = '';
           this.cdr.detectChanges();
         }
       });
-    } else {
-      this.placeholderUrl = this.getPlaceholderUrl();
     }
     this.cdr.detectChanges();
   }
@@ -92,7 +64,6 @@ export class PosterComponent {
 
   onImageError() {
     this.imageUrl = '';
-    this.placeholderUrl = this.getPlaceholderUrl();
     this.cdr.detectChanges();
   }
 }

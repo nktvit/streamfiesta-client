@@ -16,14 +16,13 @@
         (error)="onImageError()"
         class="rounded-lg object-cover group-hover:opacity-90 transition-opacity duration-200"
         >
-    } @else if (placeholderUrl) {
-      <img
-        [ngSrc]="placeholderUrl"
-        [alt]="movie().Title || 'Movie Poster'"
-        [priority]="priority()"
-        class="rounded-lg object-cover group-hover:opacity-90 transition-opacity duration-200"
-        fill
-        >
+    } @else {
+      <div class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg p-3">
+        <svg class="w-8 h-8 text-gray-500 mb-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+        </svg>
+        <span class="text-gray-400 text-[10px] font-medium text-center leading-tight line-clamp-3">{{ movie().Title }}</span>
+      </div>
     }
 
     @if (displayTitle()) {
