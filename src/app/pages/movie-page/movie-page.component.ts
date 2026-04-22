@@ -126,6 +126,7 @@ export class MoviePageComponent implements OnDestroy {
           catchError(error => {
             this.logger.error('Error fetching movie details: ', error);
             this.invalidResponse = true;
+            this.isLoading = false;
             return of(null);
           })
         );

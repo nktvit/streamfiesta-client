@@ -38,11 +38,7 @@ module.exports = async function handler(req, res) {
     var responses = await Promise.all(requests);
     var omdbData = await responses[0].json();
 
-    if (omdbData.Response === 'False') {
-      return res.status(404).json({ error: omdbData.Error || 'Movie not found', Response: 'False' });
-    }
-
-    // Parse TMDB result
+    // Parse TMDB result (needed for fallback when OMDB lacks a new release)
     var tmdbId = null;
     var tmdbMatch = null;
     if (responses[1]) {
@@ -51,6 +47,41 @@ module.exports = async function handler(req, res) {
       if (tmdbMatch) {
         tmdbId = tmdbMatch.id;
       }
+    }
+
+    if (omdbData.Response === 'False') {
+      // OMDB doesn't have this movie yet (common for new releases).
+      // If TMDB found it via the IMDB ID, build a minimal response so the page can render.
+      if (tmdbMatch) {
+        var isTv = !!(tmdbData.tv_results || []).length;
+        var builtResponse = {
+          Response: 'True',
+          Title: tmdbMatch.title || tmdbMatch.name || 'N/A',
+          Year: (tmdbMatch.release_date || tmdbMatch.first_air_date || '').substring(0, 4) || 'N/A',
+          Rated: 'N/A',
+          Released: tmdbMatch.release_date || tmdbMatch.first_air_date || 'N/A',
+          Runtime: 'N/A',
+          Genre: 'N/A',
+          Director: 'N/A',
+          Writer: 'N/A',
+          Actors: 'N/A',
+          Plot: tmdbMatch.overview || 'N/A',
+          Language: 'N/A',
+          Country: 'N/A',
+          Awards: 'N/A',
+          Poster: tmdbMatch.poster_path ? 'https://image.tmdb.org/t/p/w342' + tmdbMatch.poster_path : 'N/A',
+          Ratings: tmdbMatch.vote_average ? [{ Source: 'TMDB', Value: tmdbMatch.vote_average.toFixed(1) + '/10' }] : [],
+          Metascore: 'N/A',
+          imdbRating: tmdbMatch.vote_average ? tmdbMatch.vote_average.toFixed(1) : 'N/A',
+          imdbVotes: 'N/A',
+          imdbID: id,
+          Type: isTv ? 'series' : 'movie',
+          totalSeasons: 'N/A',
+          _tmdbId: tmdbMatch.id,
+        };
+        return res.status(200).json(builtResponse);
+      }
+      return res.status(404).json({ error: omdbData.Error || 'Movie not found', Response: 'False' });
     }
 
     // Fill N/A fields from TMDB

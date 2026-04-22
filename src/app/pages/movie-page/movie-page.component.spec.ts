@@ -1,4 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { convertToParamMap, provideRouter, ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 import { MoviePageComponent } from './movie-page.component';
 
@@ -8,13 +12,24 @@ describe('MoviePageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MoviePageComponent]
+      imports: [MoviePageComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParams: of({}),
+            paramMap: of(convertToParamMap({}))
+          }
+        }
+      ]
     })
     .compileComponents();
     
     fixture = TestBed.createComponent(MoviePageComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', () => {
