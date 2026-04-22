@@ -243,7 +243,9 @@ export class MoviePageComponent implements OnDestroy {
       url: `https://fiesta.show/movie/${this.imdbId || this.originalRouteId}`,
     };
 
-    if (d.Year && d.Year !== 'N/A') {
+    if (d.Released && d.Released !== 'N/A') {
+      schema.datePublished = d.Released;
+    } else if (d.Year && d.Year !== 'N/A') {
       schema.datePublished = d.Year;
     }
     if (this.adjustedPlot) {
@@ -253,7 +255,7 @@ export class MoviePageComponent implements OnDestroy {
       schema.image = d.Poster;
     }
     if (d.Director && d.Director !== 'N/A') {
-      schema.director = { '@type': 'Person', name: d.Director };
+      schema.director = d.Director.split(', ').map((name: string) => ({ '@type': 'Person', name }));
     }
     if (d.Genre && d.Genre !== 'N/A') {
       schema.genre = d.Genre.split(', ');
@@ -268,6 +270,39 @@ export class MoviePageComponent implements OnDestroy {
     }
     if (d.Actors && d.Actors !== 'N/A') {
       schema.actor = d.Actors.split(', ').map((name: string) => ({ '@type': 'Person', name }));
+    }
+    if (d.Rated && d.Rated !== 'N/A') {
+      schema.contentRating = d.Rated;
+    }
+    if (d.Runtime && d.Runtime !== 'N/A') {
+      const mins = parseInt(d.Runtime, 10);
+      if (!isNaN(mins)) {
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        schema.duration = h > 0 ? `PT${h}H${m > 0 ? m + 'M' : ''}` : `PT${m}M`;
+      }
+    }
+    if (d.Production && d.Production !== 'N/A') {
+      schema.productionCompany = { '@type': 'Organization', name: d.Production };
+    }
+    if (d.Country && d.Country !== 'N/A') {
+      schema.countryOfOrigin = d.Country.split(', ').map((c: string) => ({ '@type': 'Country', name: c }));
+    }
+    if (d.Language && d.Language !== 'N/A') {
+      schema.inLanguage = d.Language.split(', ');
+    }
+    if (d.Awards && d.Awards !== 'N/A') {
+      schema.award = d.Awards;
+    }
+    if (isTV && this.totalSeasons > 0) {
+      schema.numberOfSeasons = this.totalSeasons;
+    }
+    if (this.trailerKey) {
+      schema.trailer = {
+        '@type': 'VideoObject',
+        name: `${d.Title} — Official Trailer`,
+        embedUrl: `https://www.youtube.com/embed/${this.trailerKey}`,
+      };
     }
 
     // Remove old element if exists
