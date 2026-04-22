@@ -8,7 +8,7 @@ import {LoggerService} from "./logger.service";
 
 
 export class MovieService {
-  private API_KEY = environment.OMDB_API_KEY;
+  private readonly API_KEY = environment.OMDB_API_KEY;
 
   currentQuery: string = '';
 
@@ -31,24 +31,21 @@ export class MovieService {
 
   searchMovies(searchTerm: string, page: number = 1): Observable<any> {
     this.currentQuery = searchTerm;
-    const url = environment.production
-      ? `/api/omdb?action=search&q=${encodeURIComponent(searchTerm)}&page=${page}`
-      : `https://www.omdbapi.com/?apikey=${this.API_KEY}&s=${encodeURIComponent(searchTerm)}&page=${page}`;
+    const url = this.buildSearchUrl(searchTerm, page);
 
     return this.http.get<any>(url).pipe(
       tap(response => {
         if (response && response.Search) {
           this.searchResults.next(response.Search);
           this.currentPageSource.next(page);
-          this.totalResultsSource.next(response.totalResults);
+          this.totalResultsSource.next(Number(response.totalResults) || 0);
         } else {
-          this.searchResults.next([]);
-          this.totalResultsSource.next(0);
+          this.resetSearchState();
         }
       }),
       catchError(error => {
         this.logger.error('Error fetching data: ', error);
-        this.searchResults.next([]);
+        this.resetSearchState();
         return of(null);
       })
     );
@@ -56,39 +53,19 @@ export class MovieService {
 
   getMovieDetails(movieId: string): Observable<any> {
     return this.fetchMovieDetails(movieId).pipe(
-      tap((response) => {
-        if (response) {
-          this.movieDetailsSubject.next(response);
-        }
-      }),
+      tap((response) => this.movieDetailsSubject.next(response)),
       catchError((error) => {
         this.logger.error('Error fetching data: ', error);
-        this.movieDetailsSubject.next({});
+        this.resetMovieDetails();
         return of(null);
       })
     );
   }
 
   private fetchMovieDetails(id: string): Observable<any> {
-    const url = environment.production
-      ? `/api/movie?id=${encodeURIComponent(id)}`
-      : `https://www.omdbapi.com/?apikey=${this.API_KEY}&i=${encodeURIComponent(id)}&plot=full`;
+    const url = this.buildDetailsUrl(id);
     return this.http.get<any>(url, {observe: 'response'}).pipe(
-      map((response) => {
-        if (response.ok && response.body && response.body.imdbID) {
-          return response.body;
-        } else {
-          throw new Error('Invalid API response');
-        }
-      }),
-      tap((response) => {
-        this.movieDetailsSubject.next(response);
-      }),
-      catchError((error) => {
-        this.logger.error('Error fetching data: ', error);
-        this.movieDetailsSubject.next({});
-        return of(null);
-      })
+      map((response) => this.extractMovieDetails(response.body, response.ok))
     );
   }
 
@@ -117,16 +94,49 @@ export class MovieService {
   }
   formatMovieDetailsArray(details: any) {
     return [
-      { label: 'Director', value: details.Director, show: details.Director && details.Director !== 'N/A' },
-      { label: 'Released', value: details.Released, show: details.Released && details.Released !== 'N/A' },
-      { label: 'Production', value: details.Production, show: details.Production && details.Production !== 'N/A' },
-      { label: 'Country', value: details.Country, show: details.Country && details.Country !== 'N/A' },
-      { label: 'Language', value: details.Language, show: details.Language && details.Language !== 'N/A' },
-      { label: 'Writers', value: details.Writer, show: details.Writer && details.Writer !== 'N/A' },
+      { label: 'Director', value: details.Director, show: this.hasValue(details.Director) },
+      { label: 'Released', value: details.Released, show: this.hasValue(details.Released) },
+      { label: 'Production', value: details.Production, show: this.hasValue(details.Production) },
+      { label: 'Country', value: details.Country, show: this.hasValue(details.Country) },
+      { label: 'Language', value: details.Language, show: this.hasValue(details.Language) },
+      { label: 'Writers', value: details.Writer, show: this.hasValue(details.Writer) },
       { label: 'Stars', value: details.Actors, show: true },
-      { label: 'Awards', value: details.Awards, show: details.Awards && details.Awards !== 'N/A' },
-      { label: 'Box Office', value: details.BoxOffice, show: details.BoxOffice && details.BoxOffice !== 'N/A' },
+      { label: 'Awards', value: details.Awards, show: this.hasValue(details.Awards) },
+      { label: 'Box Office', value: details.BoxOffice, show: this.hasValue(details.BoxOffice) },
     ];
+  }
+
+  private buildSearchUrl(searchTerm: string, page: number): string {
+    return environment.production
+      ? `/api/omdb?action=search&q=${encodeURIComponent(searchTerm)}&page=${page}`
+      : `https://www.omdbapi.com/?apikey=${this.API_KEY}&s=${encodeURIComponent(searchTerm)}&page=${page}`;
+  }
+
+  private buildDetailsUrl(id: string): string {
+    return environment.production
+      ? `/api/movie?id=${encodeURIComponent(id)}`
+      : `https://www.omdbapi.com/?apikey=${this.API_KEY}&i=${encodeURIComponent(id)}&plot=full`;
+  }
+
+  private extractMovieDetails(body: any, isOk: boolean): any {
+    if (isOk && body && body.imdbID) {
+      return body;
+    }
+
+    throw new Error('Invalid API response');
+  }
+
+  private resetSearchState(): void {
+    this.searchResults.next([]);
+    this.totalResultsSource.next(0);
+  }
+
+  private resetMovieDetails(): void {
+    this.movieDetailsSubject.next({});
+  }
+
+  private hasValue(value: string | null | undefined): boolean {
+    return !!value && value !== 'N/A';
   }
 
 }
