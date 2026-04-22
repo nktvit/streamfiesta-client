@@ -17,6 +17,7 @@ export class PosterComponent {
   readonly priority = input<boolean>(false);
 
   imageUrl = '';
+  loading = true;
 
   private cdr = inject(ChangeDetectorRef);
   private tmdb = inject(TmdbService);
@@ -42,9 +43,13 @@ ngOnInit() {
       this.tmdb.findByImdbId(movie.imdbID).subscribe(result => {
         if (result?.poster) {
           this.imageUrl = result.poster;
-          this.cdr.detectChanges();
+        } else {
+          this.loading = false;
         }
+        this.cdr.detectChanges();
       });
+    } else {
+      this.loading = false;
     }
     this.cdr.detectChanges();
   }
@@ -62,8 +67,14 @@ ngOnInit() {
     }
   }
 
+  onImageLoad() {
+    this.loading = false;
+    this.cdr.detectChanges();
+  }
+
   onImageError() {
     this.imageUrl = '';
+    this.loading = false;
     this.cdr.detectChanges();
   }
 }
