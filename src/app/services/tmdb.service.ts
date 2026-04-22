@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, switchMap, catchError, of } from 'rxjs';
+import { Observable, map, switchMap, catchError, of, shareReplay } from 'rxjs';
 import { IMovie } from '../interfaces/movie.interface';
 import { environment } from '../../environments/environment';
 import { LoggerService } from './logger.service';
@@ -21,85 +21,93 @@ export interface TmdbFindResult {
 export class TmdbService {
   private http = inject(HttpClient);
   private logger = inject(LoggerService);
+  private cache = new Map<string, Observable<any>>();
+
+  private cached<T>(key: string, source$: Observable<T>): Observable<T> {
+    if (!this.cache.has(key)) {
+      this.cache.set(key, source$.pipe(shareReplay(1)));
+    }
+    return this.cache.get(key) as Observable<T>;
+  }
 
   getTrending(): Observable<IMovie[]> {
-    return this.fetchList('trending');
+    return this.cached('trending', this.fetchList('trending'));
   }
 
   getNowPlaying(): Observable<IMovie[]> {
-    return this.fetchList('now_playing');
+    return this.cached('now_playing', this.fetchList('now_playing'));
   }
 
   getPopular(): Observable<IMovie[]> {
-    return this.fetchList('popular');
+    return this.cached('popular', this.fetchList('popular'));
   }
 
   getTopRated(): Observable<IMovie[]> {
-    return this.fetchList('top_rated');
+    return this.cached('top_rated', this.fetchList('top_rated'));
   }
 
   getTrendingTV(): Observable<IMovie[]> {
-    return this.fetchList('trending_tv');
+    return this.cached('trending_tv', this.fetchList('trending_tv'));
   }
 
   getTVDetails(tmdbId: number): Observable<{totalSeasons: number, seasons: {number: number, name: string, episodeCount: number}[]}> {
-    if (environment.production) {
-      return this.http.get<any>(`/api/tmdb?list=tv_details&id=${tmdbId}`).pipe(
-        map(res => res),
-        catchError(() => of({ totalSeasons: 0, seasons: [] }))
-      );
-    }
-    return this.http.get<any>(
-      `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${(environment as any).TMDB_API_KEY}&language=en-US`
-    ).pipe(
-      map(res => ({
-        totalSeasons: res.number_of_seasons || 0,
-        seasons: (res.seasons || [])
-          .filter((s: any) => s.season_number > 0)
-          .map((s: any) => ({ number: s.season_number, name: s.name, episodeCount: s.episode_count }))
-      })),
-      catchError(() => of({ totalSeasons: 0, seasons: [] }))
+    return this.cached(`tv_details_${tmdbId}`, environment.production
+      ? this.http.get<any>(`/api/tmdb?list=tv_details&id=${tmdbId}`).pipe(
+          map(res => res),
+          catchError(() => of({ totalSeasons: 0, seasons: [] }))
+        )
+      : this.http.get<any>(
+          `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${(environment as any).TMDB_API_KEY}&language=en-US`
+        ).pipe(
+          map(res => ({
+            totalSeasons: res.number_of_seasons || 0,
+            seasons: (res.seasons || [])
+              .filter((s: any) => s.season_number > 0)
+              .map((s: any) => ({ number: s.season_number, name: s.name, episodeCount: s.episode_count }))
+          })),
+          catchError(() => of({ totalSeasons: 0, seasons: [] }))
+        )
     );
   }
 
   getTVSeasonEpisodes(tmdbId: number, season: number): Observable<any[]> {
-    if (environment.production) {
-      return this.http.get<any>(`/api/tmdb?list=tv_episodes&id=${tmdbId}&season=${season}`).pipe(
-        map(res => res.episodes || []),
-        catchError(() => of([]))
-      );
-    }
-    return this.http.get<any>(
-      `https://api.themoviedb.org/3/tv/${tmdbId}/season/${season}?api_key=${(environment as any).TMDB_API_KEY}&language=en-US`
-    ).pipe(
-      map(res => (res.episodes || []).map((ep: any) => ({
-        number: ep.episode_number,
-        title: ep.name || `Episode ${ep.episode_number}`,
-        rating: ep.vote_average ? ep.vote_average.toFixed(1) : null,
-        airDate: ep.air_date || null,
-        still: ep.still_path ? 'https://image.tmdb.org/t/p/w300' + ep.still_path : null,
-      }))),
-      catchError(() => of([]))
+    return this.cached(`tv_episodes_${tmdbId}_${season}`, environment.production
+      ? this.http.get<any>(`/api/tmdb?list=tv_episodes&id=${tmdbId}&season=${season}`).pipe(
+          map(res => res.episodes || []),
+          catchError(() => of([]))
+        )
+      : this.http.get<any>(
+          `https://api.themoviedb.org/3/tv/${tmdbId}/season/${season}?api_key=${(environment as any).TMDB_API_KEY}&language=en-US`
+        ).pipe(
+          map(res => (res.episodes || []).map((ep: any) => ({
+            number: ep.episode_number,
+            title: ep.name || `Episode ${ep.episode_number}`,
+            rating: ep.vote_average ? ep.vote_average.toFixed(1) : null,
+            airDate: ep.air_date || null,
+            still: ep.still_path ? 'https://image.tmdb.org/t/p/w300' + ep.still_path : null,
+          }))),
+          catchError(() => of([]))
+        )
     );
   }
 
   getPopularTV(page: number = 1): Observable<{movies: IMovie[], totalPages: number}> {
-    if (environment.production) {
-      return this.http.get<any>(`/api/tmdb?list=popular_tv&page=${page}`).pipe(
-        map(res => ({ movies: res.movies || [], totalPages: res.totalPages || 0 })),
-        catchError(() => of({ movies: [], totalPages: 0 }))
-      );
-    }
-    return this.http.get<any>(
-      `https://api.themoviedb.org/3/tv/popular?api_key=${(environment as any).TMDB_API_KEY}&language=en-US&page=${page}`
-    ).pipe(
-      map(res => ({
-        movies: (res.results || [])
-          .filter((item: any) => item.original_language !== 'ru' && item.vote_count > 100)
-          .map((item: any) => this.mapMovie(item, 'tv')),
-        totalPages: res.total_pages || 0
-      })),
-      catchError(() => of({ movies: [], totalPages: 0 }))
+    return this.cached(`popular_tv_${page}`, environment.production
+      ? this.http.get<any>(`/api/tmdb?list=popular_tv&page=${page}`).pipe(
+          map(res => ({ movies: res.movies || [], totalPages: res.totalPages || 0 })),
+          catchError(() => of({ movies: [], totalPages: 0 }))
+        )
+      : this.http.get<any>(
+          `https://api.themoviedb.org/3/tv/popular?api_key=${(environment as any).TMDB_API_KEY}&language=en-US&page=${page}`
+        ).pipe(
+          map(res => ({
+            movies: (res.results || [])
+              .filter((item: any) => item.original_language !== 'ru' && item.vote_count > 100)
+              .map((item: any) => this.mapMovie(item, 'tv')),
+            totalPages: res.total_pages || 0
+          })),
+          catchError(() => of({ movies: [], totalPages: 0 }))
+        )
     );
   }
 
@@ -259,37 +267,37 @@ export class TmdbService {
   }
 
   getGenres(): Observable<{id: number, name: string}[]> {
-    if (environment.production) {
-      return this.http.get<any>('/api/tmdb?list=genres').pipe(
-        map(res => res.genres || []),
-        catchError(() => of([]))
-      );
-    }
-    return this.http.get<any>(
-      `https://api.themoviedb.org/3/genre/movie/list?api_key=${(environment as any).TMDB_API_KEY}&language=en-US`
-    ).pipe(
-      map(res => res.genres || []),
-      catchError(() => of([]))
+    return this.cached('genres', environment.production
+      ? this.http.get<any>('/api/tmdb?list=genres').pipe(
+          map(res => res.genres || []),
+          catchError(() => of([]))
+        )
+      : this.http.get<any>(
+          `https://api.themoviedb.org/3/genre/movie/list?api_key=${(environment as any).TMDB_API_KEY}&language=en-US`
+        ).pipe(
+          map(res => res.genres || []),
+          catchError(() => of([]))
+        )
     );
   }
 
   discoverByGenre(genreId: number, page: number = 1): Observable<{movies: IMovie[], totalPages: number}> {
-    if (environment.production) {
-      return this.http.get<any>(`/api/tmdb?list=discover&genre=${genreId}&page=${page}`).pipe(
-        map(res => ({ movies: res.movies || [], totalPages: res.totalPages || 0 })),
-        catchError(() => of({ movies: [], totalPages: 0 }))
-      );
-    }
-    return this.http.get<any>(
-      `https://api.themoviedb.org/3/discover/movie?api_key=${(environment as any).TMDB_API_KEY}&with_genres=${genreId}&sort_by=popularity.desc&vote_count.gte=100&page=${page}&language=en-US`
-    ).pipe(
-      map(res => ({
-        movies: (res.results || [])
-          .filter((item: any) => item.original_language !== 'ru')
-          .map((item: any) => this.mapMovie(item)),
-        totalPages: res.total_pages || 0
-      })),
-      catchError(() => of({ movies: [], totalPages: 0 }))
+    return this.cached(`genre_${genreId}_${page}`, environment.production
+      ? this.http.get<any>(`/api/tmdb?list=discover&genre=${genreId}&page=${page}`).pipe(
+          map(res => ({ movies: res.movies || [], totalPages: res.totalPages || 0 })),
+          catchError(() => of({ movies: [], totalPages: 0 }))
+        )
+      : this.http.get<any>(
+          `https://api.themoviedb.org/3/discover/movie?api_key=${(environment as any).TMDB_API_KEY}&with_genres=${genreId}&sort_by=popularity.desc&vote_count.gte=100&page=${page}&language=en-US`
+        ).pipe(
+          map(res => ({
+            movies: (res.results || [])
+              .filter((item: any) => item.original_language !== 'ru')
+              .map((item: any) => this.mapMovie(item)),
+            totalPages: res.total_pages || 0
+          })),
+          catchError(() => of({ movies: [], totalPages: 0 }))
+        )
     );
   }
 
@@ -314,22 +322,22 @@ export class TmdbService {
   }
 
   getTopRatedPaginated(page: number = 1): Observable<{movies: IMovie[], totalPages: number}> {
-    if (environment.production) {
-      return this.http.get<any>(`/api/tmdb?list=top_rated&page=${page}`).pipe(
-        map(res => ({ movies: res.movies || [], totalPages: res.totalPages || 0 })),
-        catchError(() => of({ movies: [], totalPages: 0 }))
-      );
-    }
-    return this.http.get<any>(
-      `https://api.themoviedb.org/3/movie/top_rated?api_key=${(environment as any).TMDB_API_KEY}&language=en-US&page=${page}`
-    ).pipe(
-      map(res => ({
-        movies: (res.results || [])
-          .filter((item: any) => item.original_language !== 'ru' && item.vote_count > 100)
-          .map((item: any) => this.mapMovie(item)),
-        totalPages: res.total_pages || 0
-      })),
-      catchError(() => of({ movies: [], totalPages: 0 }))
+    return this.cached(`top_rated_${page}`, environment.production
+      ? this.http.get<any>(`/api/tmdb?list=top_rated&page=${page}`).pipe(
+          map(res => ({ movies: res.movies || [], totalPages: res.totalPages || 0 })),
+          catchError(() => of({ movies: [], totalPages: 0 }))
+        )
+      : this.http.get<any>(
+          `https://api.themoviedb.org/3/movie/top_rated?api_key=${(environment as any).TMDB_API_KEY}&language=en-US&page=${page}`
+        ).pipe(
+          map(res => ({
+            movies: (res.results || [])
+              .filter((item: any) => item.original_language !== 'ru' && item.vote_count > 100)
+              .map((item: any) => this.mapMovie(item)),
+            totalPages: res.total_pages || 0
+          })),
+          catchError(() => of({ movies: [], totalPages: 0 }))
+        )
     );
   }
 

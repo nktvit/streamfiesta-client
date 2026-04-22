@@ -5,10 +5,11 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { PosterComponent } from '../../components/poster/poster.component';
 import { TmdbService } from '../../services/tmdb.service';
 import { IMovie } from '../../interfaces/movie.interface';
+import { InfiniteScrollDirective } from '../../directives/infinite-scroll.directive';
 
 @Component({
   selector: 'app-genre',
-  imports: [NavbarComponent, PosterComponent],
+  imports: [NavbarComponent, PosterComponent, InfiniteScrollDirective],
   templateUrl: './genre.component.html',
   styleUrl: './genre.component.css',
 })
@@ -19,6 +20,8 @@ export class GenreComponent {
   currentPage = 1;
   totalPages = 0;
   loading = true;
+  isLoadingMore = false;
+  hasMore = false;
 
   private route = inject(ActivatedRoute);
   private tmdb = inject(TmdbService);
@@ -28,7 +31,10 @@ export class GenreComponent {
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
       this.genreId = +(params.get('id') || 0);
+      this.movies = [];
       this.currentPage = 1;
+      this.hasMore = false;
+      this.loading = true;
       this.loadGenreName();
       this.loadMovies();
     });
@@ -46,18 +52,19 @@ export class GenreComponent {
   }
 
   loadMovies() {
-    this.loading = true;
     this.tmdb.discoverByGenre(this.genreId, this.currentPage).subscribe(result => {
-      this.movies = result.movies;
+      this.movies = [...this.movies, ...result.movies];
       this.totalPages = result.totalPages;
+      this.hasMore = this.currentPage < this.totalPages;
       this.loading = false;
+      this.isLoadingMore = false;
     });
   }
 
-  goToPage(page: number) {
-    if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
+  loadMore() {
+    if (!this.hasMore || this.isLoadingMore) return;
+    this.currentPage++;
+    this.isLoadingMore = true;
     this.loadMovies();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

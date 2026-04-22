@@ -4,10 +4,11 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { PosterComponent } from '../../components/poster/poster.component';
 import { TmdbService } from '../../services/tmdb.service';
 import { IMovie } from '../../interfaces/movie.interface';
+import { InfiniteScrollDirective } from '../../directives/infinite-scroll.directive';
 
 @Component({
   selector: 'app-top-rated',
-  imports: [NavbarComponent, PosterComponent],
+  imports: [NavbarComponent, PosterComponent, InfiniteScrollDirective],
   templateUrl: './top-rated.component.html',
   styleUrl: './top-rated.component.css',
 })
@@ -16,6 +17,8 @@ export class TopRatedComponent {
   currentPage = 1;
   totalPages = 0;
   loading = true;
+  isLoadingMore = false;
+  hasMore = false;
 
   private tmdb = inject(TmdbService);
   private titleService = inject(Title);
@@ -28,18 +31,19 @@ export class TopRatedComponent {
   }
 
   loadMovies() {
-    this.loading = true;
     this.tmdb.getTopRatedPaginated(this.currentPage).subscribe(result => {
-      this.movies = result.movies;
+      this.movies = [...this.movies, ...result.movies];
       this.totalPages = result.totalPages;
+      this.hasMore = this.currentPage < this.totalPages;
       this.loading = false;
+      this.isLoadingMore = false;
     });
   }
 
-  goToPage(page: number) {
-    if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
+  loadMore() {
+    if (!this.hasMore || this.isLoadingMore) return;
+    this.currentPage++;
+    this.isLoadingMore = true;
     this.loadMovies();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

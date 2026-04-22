@@ -1,78 +1,80 @@
-import {Component, inject} from '@angular/core';
-import {Title, Meta} from '@angular/platform-browser';
-import {PosterComponent} from '../../components/poster/poster.component';
-import {MovieService} from '../../services/movie.service';
-import {PaginationComponent} from '../../components/pagination/pagination.component';
-import {NavbarComponent} from '../../components/navbar/navbar.component';
-import {ActivatedRoute, Router} from '@angular/router';
-
-import {NotfoundComponent} from '../../components/notfound/notfound.component';
-import {IMovie} from "../../interfaces/movie.interface";
-import {LoggerService} from "../../services/logger.service";
+import { Component, inject } from '@angular/core';
+import { Title, Meta } from '@angular/platform-browser';
+import { PosterComponent } from '../../components/poster/poster.component';
+import { MovieService } from '../../services/movie.service';
+import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { ActivatedRoute } from '@angular/router';
+import { NotfoundComponent } from '../../components/notfound/notfound.component';
+import { IMovie } from "../../interfaces/movie.interface";
+import { LoggerService } from "../../services/logger.service";
+import { InfiniteScrollDirective } from '../../directives/infinite-scroll.directive';
 
 @Component({
   selector: 'app-search-page',
-  imports: [PosterComponent, PaginationComponent, NavbarComponent, NotfoundComponent],
+  imports: [PosterComponent, NavbarComponent, NotfoundComponent, InfiniteScrollDirective],
   templateUrl: './search-page.component.html',
   styleUrl: './search-page.component.css'
 })
 export class SearchPageComponent {
   movies: IMovie[] = [];
-  totalResults: number = 0;
-  currentPage: number = 1;
-
-  isLoading: boolean = false
+  totalResults = 0;
+  currentPage = 1;
+  hasMore = false;
+  isLoading = false;
+  isLoadingMore = false;
 
   private movieService = inject(MovieService);
-  private router = inject(Router);
   private route = inject(ActivatedRoute);
   private logger = inject(LoggerService);
   private titleService = inject(Title);
   private metaService = inject(Meta);
 
-  loadMovies(prompt: string, page: number) {
-    this.isLoading = true;
-
-    this.movieService.searchMovies(prompt, page)
-      .subscribe({
-        next: () => {
-          this.isLoading = false;
-        },
-        error: (error) => {
-          this.logger.error('Error during search:', error);
-          this.isLoading = false;
-        }
-      });
-  }
-
   ngOnInit(): void {
-    this.movieService.totalResults$.subscribe(total => {
-      this.totalResults = total;
-    });
-
-    this.movieService.searchResults$.subscribe(results => {
-      this.movies = results;
-    });
-
-    // Handling initial query param
     this.route.queryParams.subscribe(params => {
       const query = params['query'];
       if (query) {
         this.titleService.setTitle(`Search "${query}" | Stream Fiesta`);
         this.metaService.updateTag({ name: 'description', content: `Search results for "${query}" — watch free on Stream Fiesta.` });
-      }
-      const page: number = params['page'] || 1; // Default page 1
-
-      if (query && this.movies.length === 0) {
-        this.loadMovies(query, page);
+        this.movies = [];
+        this.currentPage = 1;
+        this.hasMore = false;
+        this.fetchMovies(query, 1, false);
       }
     });
   }
 
-  onPageChange(page: number): void {
-    // Assuming the search box or another component triggers searchMovies in the service
-    this.loadMovies(this.movieService.currentQuery, page);
-    this.router.navigate(['/search'], {queryParams: {page}, queryParamsHandling: 'merge'});
-    this.currentPage = page
+  private fetchMovies(query: string, page: number, append: boolean) {
+    if (append) {
+      this.isLoadingMore = true;
+    } else {
+      this.isLoading = true;
+    }
+
+    this.movieService.searchMovies(query, page).subscribe({
+      next: (response) => {
+        if (response?.Search) {
+          const newMovies: IMovie[] = response.Search;
+          this.movies = append ? [...this.movies, ...newMovies] : newMovies;
+          this.totalResults = parseInt(response.totalResults) || 0;
+          this.hasMore = this.movies.length < this.totalResults;
+        } else {
+          if (!append) this.movies = [];
+          this.hasMore = false;
+        }
+        this.isLoading = false;
+        this.isLoadingMore = false;
+      },
+      error: (error) => {
+        this.logger.error('Error during search:', error);
+        this.isLoading = false;
+        this.isLoadingMore = false;
+      }
+    });
+  }
+
+  loadMore(): void {
+    if (!this.hasMore || this.isLoadingMore || this.isLoading) return;
+    this.currentPage++;
+    this.fetchMovies(this.movieService.currentQuery, this.currentPage, true);
   }
 }

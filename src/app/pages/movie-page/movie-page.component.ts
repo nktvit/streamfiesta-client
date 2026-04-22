@@ -55,7 +55,7 @@ export class MoviePageComponent implements OnDestroy {
   protected trailerKey: string | null = null;
   protected showTrailer = false;
   private originalRouteId: string = '';
-  private tmdbId: number | null = null;
+  protected tmdbId: number | null = null;
 
   private movieService = inject(MovieService);
   private tmdbService = inject(TmdbService);
@@ -97,6 +97,7 @@ export class MoviePageComponent implements OnDestroy {
         this.recommendations = [];
         this.trailerKey = null;
         this.showTrailer = false;
+        this.tmdbId = null;
         this.originalRouteId = id;
         window.scrollTo({ top: 0 });
 
@@ -143,7 +144,7 @@ export class MoviePageComponent implements OnDestroy {
 
           if (details.Plot && details.Plot !== 'N/A') {
             this.adjustedPlot = this.adjustPlot(details.Plot);
-            this.isPlotLong = this.adjustedPlot.length > 300;
+            this.isPlotLong = this.adjustedPlot.length > 400;
             this.shouldClamp = !this.isFullPlot && this.isPlotLong;
           }
 
@@ -199,7 +200,7 @@ export class MoviePageComponent implements OnDestroy {
 
       if (needsPlot && tmdb.overview) {
         this.adjustedPlot = this.adjustPlot(tmdb.overview);
-        this.isPlotLong = this.adjustedPlot.length > 300;
+        this.isPlotLong = this.adjustedPlot.length > 400;
         this.shouldClamp = !this.isFullPlot && this.isPlotLong;
       }
 
@@ -246,7 +247,7 @@ export class MoviePageComponent implements OnDestroy {
       schema.datePublished = d.Year;
     }
     if (this.adjustedPlot) {
-      schema.description = this.adjustedPlot.substring(0, 200);
+      schema.description = this.adjustedPlot.substring(0, 400);
     }
     if (d.Poster && d.Poster !== 'N/A') {
       schema.image = d.Poster;
@@ -430,6 +431,12 @@ export class MoviePageComponent implements OnDestroy {
       queryParams: { srv: index || null },
       queryParamsHandling: 'merge',
     });
+  }
+
+  get showMetascoreFallback(): boolean {
+    return this.movieDetails?.Metascore &&
+      this.movieDetails.Metascore !== 'N/A' &&
+      !this.movieDetails.Ratings?.some((r: any) => r.Source === 'Metacritic');
   }
 
   togglePlot() {

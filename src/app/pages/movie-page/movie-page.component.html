@@ -65,34 +65,49 @@
           <div class="mt-4 flex flex-wrap gap-2">
             <!-- IMDB -->
             @if (movieDetails.imdbRating && movieDetails.imdbRating !== 'N/A') {
-              <span
-                class="inline-flex items-center rounded-full bg-yellow-500 px-3 py-1.5 text-xs font-semibold text-black hover:bg-yellow-400 transition-colors">
+              <a [href]="'https://www.imdb.com/title/' + imdbId + '/'" target="_blank" rel="noopener noreferrer"
+                [title]="movieDetails.imdbVotes && movieDetails.imdbVotes !== 'N/A' ? movieDetails.imdbVotes + ' votes' : ''"
+                class="inline-flex items-center rounded-full bg-yellow-500 px-3 py-1.5 text-xs font-semibold text-black hover:bg-yellow-400 transition-colors cursor-pointer">
                 IMDb {{ movieDetails.imdbRating }}
-              </span>
+              </a>
             }
             <!-- Platform Ratings (Including Rotten Tomatoes) -->
             @for (rating of movieDetails.Ratings; track rating) {
               <!-- Rotten Tomatoes -->
               @if (rating.Source === 'Rotten Tomatoes' && rating.Value !== 'N/A') {
-                <span
-                  class="inline-flex items-center rounded-full bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-500 transition-colors">
+                <a [href]="'https://www.rottentomatoes.com/search?search=' + movieDetails.Title" target="_blank" rel="noopener noreferrer"
+                  class="inline-flex items-center rounded-full bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-500 transition-colors cursor-pointer">
                   {{ rating.Source }} {{ rating.Value }}
-                </span>
+                </a>
               }
               <!-- Metacritic -->
               @if (rating.Source === 'Metacritic' && rating.Value !== 'N/A') {
-                <span
-                  class="inline-flex items-center rounded-full bg-black border-2 border-[#ffd016] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#030303] transition-colors">
+                <a [href]="'https://www.metacritic.com/search/' + movieDetails.Title + '/'" target="_blank" rel="noopener noreferrer"
+                  class="inline-flex items-center rounded-full bg-black border-2 border-[#ffd016] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#030303] transition-colors cursor-pointer">
                   {{ rating.Source }} {{ rating.Value }}
-                </span>
+                </a>
+              }
+              <!-- TMDB -->
+              @if (rating.Source === 'TMDB' && rating.Value !== 'N/A') {
+                <a [href]="'https://www.themoviedb.org/' + type + '/' + tmdbId" target="_blank" rel="noopener noreferrer"
+                  class="inline-flex items-center rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-500 transition-colors cursor-pointer">
+                  {{ rating.Source }} {{ rating.Value }}
+                </a>
               }
               <!-- Other Platforms -->
-              @if (rating.Source !== 'Rotten Tomatoes' && rating.Source !== 'Metacritic' && rating.Source !== 'Internet Movie Database' && rating.Value !== 'N/A') {
+              @if (rating.Source !== 'Rotten Tomatoes' && rating.Source !== 'Metacritic' && rating.Source !== 'Internet Movie Database' && rating.Source !== 'TMDB' && rating.Value !== 'N/A') {
                 <span
-                  class="inline-flex items-center rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-500 transition-colors">
+                  class="inline-flex items-center rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white">
                   {{ rating.Source }} {{ rating.Value }}
                 </span>
               }
+            }
+            <!-- Metacritic fallback from Metascore field -->
+            @if (showMetascoreFallback) {
+              <a [href]="'https://www.metacritic.com/search/' + movieDetails.Title + '/'" target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center rounded-full bg-black border-2 border-[#ffd016] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#030303] transition-colors cursor-pointer">
+                Metacritic {{ movieDetails.Metascore }}/100
+              </a>
             }
           </div>
           <!-- Plot Section -->

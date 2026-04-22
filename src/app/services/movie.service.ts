@@ -118,6 +118,8 @@ export class MovieService {
   formatMovieDetailsArray(details: any) {
     return [
       { label: 'Director', value: details.Director, show: details.Director && details.Director !== 'N/A' },
+      { label: 'Released', value: details.Released, show: details.Released && details.Released !== 'N/A' },
+      { label: 'Production', value: details.Production, show: details.Production && details.Production !== 'N/A' },
       { label: 'Country', value: details.Country, show: details.Country && details.Country !== 'N/A' },
       { label: 'Language', value: details.Language, show: details.Language && details.Language !== 'N/A' },
       { label: 'Writers', value: details.Writer, show: details.Writer && details.Writer !== 'N/A' },
