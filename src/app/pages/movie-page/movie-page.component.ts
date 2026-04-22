@@ -56,6 +56,7 @@ export class MoviePageComponent implements OnDestroy {
   protected showTrailer = false;
   private originalRouteId: string = '';
   protected tmdbId: number | null = null;
+  protected backdropUrl: string | null = null;
 
   private movieService = inject(MovieService);
   private tmdbService = inject(TmdbService);
@@ -169,6 +170,7 @@ export class MoviePageComponent implements OnDestroy {
         this.isLoading = false;
         this.loadRecommendations();
         this.loadTrailer();
+        this.loadBackdrop();
       })
     ).subscribe();
   }
@@ -326,6 +328,14 @@ export class MoviePageComponent implements OnDestroy {
             this.trailerKey = key;
           });
         }
+      });
+    }
+  }
+
+  private loadBackdrop() {
+    if (this.imdbId) {
+      this.tmdbService.findByImdbId(this.imdbId).subscribe(result => {
+        this.backdropUrl = result?.backdrop ?? null;
       });
     }
   }
