@@ -99,6 +99,7 @@ export class MoviePageComponent implements OnDestroy {
         this.trailerKey = null;
         this.showTrailer = false;
         this.tmdbId = null;
+        this.backdropUrl = null;
         this.originalRouteId = id;
         window.scrollTo({ top: 0 });
 
