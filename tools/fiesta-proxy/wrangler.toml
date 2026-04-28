@@ -5,3 +5,8 @@ account_id = "14884bc18e4d20f21979a2c88813aade"
 
 [dev]
 port = 8787
+
+[observability]
+[observability.logs]
+enabled = true
+invocation_logs = true
