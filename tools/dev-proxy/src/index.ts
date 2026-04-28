@@ -3,8 +3,145 @@ const ALLOWED_HOSTS = new Set([
   'vidsrc.xyz',
 ]);
 
+const BLOCKED_PATTERNS: RegExp[] = [
+  /(^|\.)histats\.com\b/i,
+  /cloudnestra\.com\/base64\.js/i,
+];
+
+function isBlockedUrl(raw: string, base: string): boolean {
+  let href = raw;
+  try {
+    href = new URL(raw, base).href;
+  } catch {}
+  return BLOCKED_PATTERNS.some((p) => p.test(href));
+}
+
+const BLOCKED_PATTERNS_JS = `[${BLOCKED_PATTERNS.map((p) => p.toString()).join(',')}]`;
+
 const NEUTRALIZER = `<script>
 (function () {
+  var BLOCKED = ${BLOCKED_PATTERNS_JS};
+  function isBlocked(s) {
+    if (s == null) return false;
+    try { return BLOCKED.some(function (p) { return p.test(String(s)); }); }
+    catch (e) { return false; }
+  }
+
+  var origSetAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (name, value) {
+    if ((name === 'src' || name === 'href') && isBlocked(value)) {
+      console.warn('[neutralize] blocked', name, String(value));
+      return;
+    }
+    return origSetAttr.apply(this, arguments);
+  };
+
+  ['HTMLScriptElement', 'HTMLImageElement', 'HTMLIFrameElement', 'HTMLLinkElement'].forEach(function (n) {
+    var Ctor = window[n];
+    if (!Ctor) return;
+    var key = n === 'HTMLLinkElement' ? 'href' : 'src';
+    var desc = Object.getOwnPropertyDescriptor(Ctor.prototype, key);
+    if (!desc || !desc.set) return;
+    Object.defineProperty(Ctor.prototype, key, {
+      configurable: true,
+      get: desc.get,
+      set: function (v) {
+        if (isBlocked(v)) {
+          console.warn('[neutralize] blocked ' + n + '.' + key, String(v));
+          return;
+        }
+        return desc.set.call(this, v);
+      }
+    });
+  });
+
+  var origFetch = window.fetch;
+  if (typeof origFetch === 'function') {
+    window.fetch = function (input, init) {
+      var u = typeof input === 'string' ? input : (input && input.url) || '';
+      if (isBlocked(u)) {
+        console.warn('[neutralize] blocked fetch', u);
+        return Promise.reject(new TypeError('blocked'));
+      }
+      return origFetch.apply(this, arguments);
+    };
+  }
+
+  var origOpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function (method, url) {
+    if (isBlocked(url)) {
+      console.warn('[neutralize] blocked xhr', String(url));
+      this.send = function () {};
+      return;
+    }
+    return origOpen.apply(this, arguments);
+  };
+
+  if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+    var origBeacon = navigator.sendBeacon.bind(navigator);
+    navigator.sendBeacon = function (url, data) {
+      if (isBlocked(url)) {
+        console.warn('[neutralize] blocked beacon', String(url));
+        return true;
+      }
+      return origBeacon(url, data);
+    };
+  }
+
+  try {
+    Object.defineProperty(window, 'open', {
+      configurable: true,
+      value: function () {
+        console.warn('[neutralize] blocked window.open', arguments[0]);
+        return null;
+      }
+    });
+  } catch (e) {
+    try { window.open = function () { return null; }; } catch (_) {}
+  }
+
+  var isBlankTarget = function (t) { return t === '_blank' || t === 'blank'; };
+
+  var origAClick = HTMLElement.prototype.click;
+  HTMLElement.prototype.click = function () {
+    if (this instanceof HTMLAnchorElement && isBlankTarget(this.target)) {
+      console.warn('[neutralize] blocked anchor.click target=_blank', this.href);
+      return;
+    }
+    return origAClick.apply(this, arguments);
+  };
+
+  if (typeof HTMLFormElement !== 'undefined') {
+    var origFormSubmit = HTMLFormElement.prototype.submit;
+    HTMLFormElement.prototype.submit = function () {
+      if (isBlankTarget(this.target)) {
+        console.warn('[neutralize] blocked form.submit target=_blank');
+        return;
+      }
+      return origFormSubmit.apply(this, arguments);
+    };
+  }
+
+  document.addEventListener('click', function (e) {
+    var baseHost;
+    try { baseHost = new URL(document.baseURI).host; } catch (_) { baseHost = location.host; }
+    var node = e.target;
+    while (node && node !== document) {
+      if (node.tagName === 'A' && isBlankTarget(node.target)) {
+        try {
+          var u = new URL(node.getAttribute('href') || '', document.baseURI);
+          if (u.host && u.host !== baseHost) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            console.warn('[neutralize] blocked anchor click', u.href);
+            return;
+          }
+        } catch (_) {}
+      }
+      node = node.parentNode;
+    }
+  }, true);
+
   var stub = function () {};
   stub.isSuspend = false;
   stub.isRunning = false;
@@ -94,19 +231,81 @@ export default {
     headers.set('access-control-allow-origin', '*');
 
     const ct = (upstream.headers.get('content-type') ?? '').toLowerCase();
+    const proxyOrigin = url.origin;
+
+    const rewriteToProxy = (raw: string): string | null => {
+      try {
+        const r = new URL(raw, `https://${targetHost}/`);
+        if (!ALLOWED_HOSTS.has(r.host.toLowerCase())) return null;
+        return `${proxyOrigin}/${r.host.toLowerCase()}${r.pathname}${r.search}`;
+      } catch {
+        return null;
+      }
+    };
+
+    if (ct.includes('javascript') || ct.includes('ecmascript')) {
+      const text = await upstream.text();
+      return new Response(stripDebugger(text), { status: upstream.status, headers });
+    }
+
     if (!ct.includes('text/html')) {
       return new Response(upstream.body, { status: upstream.status, headers });
     }
 
-    const rewriter = new HTMLRewriter().on('head', {
-      element(el) {
-        el.prepend(`<base href="https://${targetHost}/">`, { html: true });
-        el.prepend(NEUTRALIZER, { html: true });
-      },
-    });
+    const rewriter = new HTMLRewriter()
+      .on('head', {
+        element(el) {
+          el.prepend(`<base href="https://${targetHost}/">`, { html: true });
+          el.prepend(NEUTRALIZER, { html: true });
+        },
+      })
+      .on('script', {
+        element(el) {
+          const src = el.getAttribute('src');
+          if (!src) return;
+          if (isBlockedUrl(src, `https://${targetHost}/`)) {
+            el.remove();
+            return;
+          }
+          const proxied = rewriteToProxy(src);
+          if (proxied) el.setAttribute('src', proxied);
+        },
+        text(chunk) {
+          if (!chunk.text) return;
+          chunk.replace(stripDebugger(chunk.text), { html: false });
+        },
+      })
+      .on('iframe', {
+        element(el) {
+          const src = el.getAttribute('src');
+          if (!src) return;
+          if (isBlockedUrl(src, `https://${targetHost}/`)) {
+            el.remove();
+            return;
+          }
+          const proxied = rewriteToProxy(src);
+          if (proxied) el.setAttribute('src', proxied);
+        },
+      })
+      .on('img', {
+        element(el) {
+          const src = el.getAttribute('src');
+          if (src && isBlockedUrl(src, `https://${targetHost}/`)) el.remove();
+        },
+      })
+      .on('link', {
+        element(el) {
+          const href = el.getAttribute('href');
+          if (href && isBlockedUrl(href, `https://${targetHost}/`)) el.remove();
+        },
+      });
 
     return rewriter.transform(
       new Response(upstream.body, { status: upstream.status, headers }),
     );
   },
 };
+
+function stripDebugger(src: string): string {
+  return src.replace(/\bdebugger\b/g, '        ');
+}
