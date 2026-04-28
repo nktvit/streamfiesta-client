@@ -6,6 +6,7 @@ const ALLOWED_HOSTS = new Set([
 const BLOCKED_PATTERNS: RegExp[] = [
   /(^|\.)histats\.com\b/i,
   /cloudnestra\.com\/base64\.js/i,
+  /vidsrc\.[a-z]+\/cdn-cgi\/rum/i,
 ];
 
 function isBlockedUrl(raw: string, base: string): boolean {
@@ -30,7 +31,7 @@ const NEUTRALIZER = `<script>
   var origSetAttr = Element.prototype.setAttribute;
   Element.prototype.setAttribute = function (name, value) {
     if ((name === 'src' || name === 'href') && isBlocked(value)) {
-      console.warn('[neutralize] blocked', name, String(value));
+      console.debug('[neutralize] blocked', name, String(value));
       return;
     }
     return origSetAttr.apply(this, arguments);
@@ -47,7 +48,7 @@ const NEUTRALIZER = `<script>
       get: desc.get,
       set: function (v) {
         if (isBlocked(v)) {
-          console.warn('[neutralize] blocked ' + n + '.' + key, String(v));
+          console.debug('[neutralize] blocked ' + n + '.' + key, String(v));
           return;
         }
         return desc.set.call(this, v);
@@ -60,7 +61,7 @@ const NEUTRALIZER = `<script>
     window.fetch = function (input, init) {
       var u = typeof input === 'string' ? input : (input && input.url) || '';
       if (isBlocked(u)) {
-        console.warn('[neutralize] blocked fetch', u);
+        console.debug('[neutralize] blocked fetch', u);
         return Promise.reject(new TypeError('blocked'));
       }
       return origFetch.apply(this, arguments);
@@ -70,7 +71,7 @@ const NEUTRALIZER = `<script>
   var origOpen = XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open = function (method, url) {
     if (isBlocked(url)) {
-      console.warn('[neutralize] blocked xhr', String(url));
+      console.debug('[neutralize] blocked xhr', String(url));
       this.send = function () {};
       return;
     }
@@ -81,7 +82,7 @@ const NEUTRALIZER = `<script>
     var origBeacon = navigator.sendBeacon.bind(navigator);
     navigator.sendBeacon = function (url, data) {
       if (isBlocked(url)) {
-        console.warn('[neutralize] blocked beacon', String(url));
+        console.debug('[neutralize] blocked beacon', String(url));
         return true;
       }
       return origBeacon(url, data);
@@ -92,7 +93,7 @@ const NEUTRALIZER = `<script>
     Object.defineProperty(window, 'open', {
       configurable: true,
       value: function () {
-        console.warn('[neutralize] blocked window.open', arguments[0]);
+        console.debug('[neutralize] blocked window.open', arguments[0]);
         return null;
       }
     });
@@ -105,7 +106,7 @@ const NEUTRALIZER = `<script>
   var origAClick = HTMLElement.prototype.click;
   HTMLElement.prototype.click = function () {
     if (this instanceof HTMLAnchorElement && isBlankTarget(this.target)) {
-      console.warn('[neutralize] blocked anchor.click target=_blank', this.href);
+      console.debug('[neutralize] blocked anchor.click target=_blank', this.href);
       return;
     }
     return origAClick.apply(this, arguments);
@@ -115,11 +116,40 @@ const NEUTRALIZER = `<script>
     var origFormSubmit = HTMLFormElement.prototype.submit;
     HTMLFormElement.prototype.submit = function () {
       if (isBlankTarget(this.target)) {
-        console.warn('[neutralize] blocked form.submit target=_blank');
+        console.debug('[neutralize] blocked form.submit target=_blank');
         return;
       }
       return origFormSubmit.apply(this, arguments);
     };
+  }
+
+  try {
+    Object.defineProperty(document, 'domain', {
+      configurable: true,
+      get: function () { return location.hostname; },
+      set: function () {}
+    });
+  } catch (_) {}
+
+  if (typeof document.write === 'function') {
+    var origWrite = document.write.bind(document);
+    var origWriteln = document.writeln ? document.writeln.bind(document) : null;
+    var sanitizeWrite = function (chunk) {
+      if (typeof chunk !== 'string') return chunk;
+      return chunk.replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script\\s*>|<script\\b[^>]*\\/?\\s*>/gi, function (m) {
+        return BLOCKED.some(function (p) { return p.test(m); }) ? '' : m;
+      });
+    };
+    document.write = function () {
+      var args = Array.prototype.map.call(arguments, sanitizeWrite);
+      return origWrite.apply(document, args);
+    };
+    if (origWriteln) {
+      document.writeln = function () {
+        var args = Array.prototype.map.call(arguments, sanitizeWrite);
+        return origWriteln.apply(document, args);
+      };
+    }
   }
 
   document.addEventListener('click', function (e) {
@@ -133,7 +163,7 @@ const NEUTRALIZER = `<script>
           if (u.host && u.host !== baseHost) {
             e.preventDefault();
             e.stopImmediatePropagation();
-            console.warn('[neutralize] blocked anchor click', u.href);
+            console.debug('[neutralize] blocked anchor click', u.href);
             return;
           }
         } catch (_) {}
@@ -171,13 +201,13 @@ const NEUTRALIZER = `<script>
     }));
   };
 
-  var block = function () { console.warn('[neutralize] navigation blocked'); };
+  var block = function () { console.debug('[neutralize] navigation blocked'); };
   try {
     Object.defineProperty(window.location, 'href', { set: block });
     window.location.replace = block;
     window.location.assign  = block;
   } catch (_) {}
-  window.close = function () { console.warn('[neutralize] window.close blocked'); };
+  window.close = function () { console.debug('[neutralize] window.close blocked'); };
 
   var _Function = window.Function;
   window.Function = new Proxy(_Function, {
@@ -307,5 +337,5 @@ export default {
 };
 
 function stripDebugger(src: string): string {
-  return src.replace(/\bdebugger\b/g, '        ');
+  return src.replace(/(?<!\.)\bdebugger\b(?=\s*(?:;|\}|$))/g, '        ');
 }
