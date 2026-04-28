@@ -1,7 +1,7 @@
 import {Component, inject, input, output, OnChanges, SimpleChanges, isDevMode} from '@angular/core';
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
 
-const DEV_PROXY_ORIGIN = 'http://localhost:8787';
+const DEV_PROXY_ORIGIN = 'https://media.fiesta.show';
 const PROXIED_HOSTS = new Set(['vidsrc.me', 'vidsrc.xyz']);
 
 interface PlayerSource {

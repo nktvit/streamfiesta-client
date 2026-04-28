@@ -1,5 +1,5 @@
 {
-  "name": "dev-proxy",
+  "name": "fiesta-proxy",
   "private": true,
   "scripts": {
     "dev": "wrangler dev"
