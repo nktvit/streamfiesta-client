@@ -46,3 +46,5 @@ Thumbs.db
 .vercel
 /.playwright-mcp/**
 /.claude/worktrees/**
+/tools/dev-proxy/.wrangler/**
+/tools/dev-proxy/node_modules/**

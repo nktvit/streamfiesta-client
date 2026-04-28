@@ -1,5 +1,8 @@
-import {Component, inject, input, output, OnChanges, SimpleChanges} from '@angular/core';
+import {Component, inject, input, output, OnChanges, SimpleChanges, isDevMode} from '@angular/core';
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
+
+const DEV_PROXY_ORIGIN = 'http://localhost:8787';
+const PROXIED_HOSTS = new Set(['vidsrc.me', 'vidsrc.xyz']);
 
 interface PlayerSource {
   name: string;
@@ -71,6 +74,18 @@ export class MoviePlayerComponent implements OnChanges {
     const url = this.players[this.activePlayer].buildUrl(
       type, this.imdbId(), this.season(), this.episode()
     );
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    const finalUrl = isDevMode() ? this.toProxy(url) : url;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(finalUrl);
+  }
+
+  private toProxy(url: string): string {
+    try {
+      const u = new URL(url);
+      const host = u.host.toLowerCase();
+      if (!PROXIED_HOSTS.has(host)) return url;
+      return `${DEV_PROXY_ORIGIN}/${host}${u.pathname}${u.search}`;
+    } catch {
+      return url;
+    }
   }
 }
