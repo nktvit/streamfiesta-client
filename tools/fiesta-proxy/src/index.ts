@@ -3,11 +3,32 @@ const ALLOWED_HOSTS = new Set([
   'vidsrc.xyz',
 ]);
 
+const REFERER_OVERRIDES: Record<string, string> = {};
+
+const HOST = (h: string) => new RegExp(`(?:^|//|\\.)${h.replace(/\./g, '\\.')}\\b`, 'i');
+
 const BLOCKED_PATTERNS: RegExp[] = [
-  /(^|\.)histats\.com\b/i,
+  HOST('histats.com'),
   /cloudnestra\.com\/base64\.js/i,
-  /vidsrc\.[a-z]+\/cdn-cgi\/rum/i,
+  /\/cdn-cgi\/rum\b/i,
+  /\/disable-devtool(?:[@.\-/]|\.min\.js)/i,
+  /\/cdn-cgi\/scripts\/[^/]+\/cloudflare-static\/rocket-loader\.min\.js/i,
+  /\/cdn-cgi\/challenge-platform\b/i,
+  HOST('effectivegatecpm.com'),
+  HOST('bvtpk.com'),
+  HOST('acscdn.com'),
+  HOST('unfrizzpacinko.com'),
+  HOST('adsco.re'),
+  HOST('intelligenceadx.com'),
+  HOST('rtmark.net'),
+  HOST('b7510.com'),
+  HOST('bumpytask.com'),
+  HOST('adexchangerapid.com'),
+  HOST('cloudflareinsights.com'),
+  /\/\/[^/]+\.(cfd|rest|sbs|click|lol|shop|monster|space)\b/i,
 ];
+
+const ROCKET_LOADER_TYPE = /^[0-9a-f]+-text\/javascript$/i;
 
 function isBlockedUrl(raw: string, base: string): boolean {
   let href = raw;
@@ -18,14 +39,29 @@ function isBlockedUrl(raw: string, base: string): boolean {
 }
 
 const BLOCKED_PATTERNS_JS = `[${BLOCKED_PATTERNS.map((p) => p.toString()).join(',')}]`;
+const ALLOWED_HOSTS_JS = JSON.stringify(Array.from(ALLOWED_HOSTS));
 
 const NEUTRALIZER = `<script>
 (function () {
   var BLOCKED = ${BLOCKED_PATTERNS_JS};
+  var PROXY_HOSTS = ${ALLOWED_HOSTS_JS};
+  var PROXY_ORIGIN = location.origin;
   function isBlocked(s) {
     if (s == null) return false;
-    try { return BLOCKED.some(function (p) { return p.test(String(s)); }); }
+    var str = String(s);
+    try { str = new URL(str, document.baseURI).href; } catch (e) {}
+    try { return BLOCKED.some(function (p) { return p.test(str); }); }
     catch (e) { return false; }
+  }
+  function maybeProxy(raw) {
+    if (raw == null) return null;
+    try {
+      var u = new URL(String(raw), document.baseURI);
+      var host = u.host.toLowerCase();
+      if (PROXY_HOSTS.indexOf(host) === -1) return null;
+      if (u.origin === PROXY_ORIGIN) return null;
+      return PROXY_ORIGIN + '/' + host + u.pathname + u.search;
+    } catch (e) { return null; }
   }
 
   var origSetAttr = Element.prototype.setAttribute;
@@ -33,6 +69,12 @@ const NEUTRALIZER = `<script>
     if ((name === 'src' || name === 'href') && isBlocked(value)) {
       console.debug('[neutralize] blocked', name, String(value));
       return;
+    }
+    if (name === 'src' && this.tagName === 'IFRAME') {
+      var proxied = maybeProxy(value);
+      if (proxied) {
+        return origSetAttr.call(this, name, proxied);
+      }
     }
     return origSetAttr.apply(this, arguments);
   };
@@ -51,6 +93,10 @@ const NEUTRALIZER = `<script>
           console.debug('[neutralize] blocked ' + n + '.' + key, String(v));
           return;
         }
+        if (n === 'HTMLIFrameElement') {
+          var proxied = maybeProxy(v);
+          if (proxied) v = proxied;
+        }
         return desc.set.call(this, v);
       }
     });
@@ -64,6 +110,10 @@ const NEUTRALIZER = `<script>
         console.debug('[neutralize] blocked fetch', u);
         return Promise.reject(new TypeError('blocked'));
       }
+      var proxied = maybeProxy(u);
+      if (proxied) {
+        return origFetch.call(this, proxied, init);
+      }
       return origFetch.apply(this, arguments);
     };
   }
@@ -73,9 +123,15 @@ const NEUTRALIZER = `<script>
     if (isBlocked(url)) {
       console.debug('[neutralize] blocked xhr', String(url));
       this.send = function () {};
+      this.setRequestHeader = function () {};
+      this.abort = function () {};
+      this.addEventListener = function () {};
       return;
     }
-    return origOpen.apply(this, arguments);
+    var args = Array.prototype.slice.call(arguments);
+    var proxied = maybeProxy(url);
+    if (proxied) args[1] = proxied;
+    return origOpen.apply(this, args);
   };
 
   if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
@@ -152,6 +208,34 @@ const NEUTRALIZER = `<script>
     }
   }
 
+  var purgeOverlays = function () {
+    try {
+      var nodes = document.querySelectorAll('iframe, div');
+      for (var i = 0; i < nodes.length; i++) {
+        var el = nodes[i];
+        if (el.id === 'dontfoid') { try { el.remove(); } catch (_) {} continue; }
+        try {
+          var cs = getComputedStyle(el);
+          var z = parseInt(cs.zIndex, 10);
+          if (!isFinite(z) || z < 1e9) continue;
+          if (cs.position !== 'fixed' && cs.position !== 'absolute') continue;
+          var op = parseFloat(cs.opacity);
+          if (isFinite(op) && op > 0.05) continue;
+          el.remove();
+        } catch (_) {}
+      }
+    } catch (_) {}
+  };
+  if (typeof MutationObserver !== 'undefined') {
+    var mo = new MutationObserver(purgeOverlays);
+    var startObserve = function () {
+      try { mo.observe(document.documentElement, { childList: true, subtree: true }); } catch (_) {}
+      purgeOverlays();
+    };
+    if (document.documentElement) startObserve();
+    else document.addEventListener('DOMContentLoaded', startObserve);
+  }
+
   document.addEventListener('click', function (e) {
     var baseHost;
     try { baseHost = new URL(document.baseURI).host; } catch (_) { baseHost = location.host; }
@@ -184,6 +268,15 @@ const NEUTRALIZER = `<script>
       set: function () { return true; }
     });
   } catch (e) {}
+
+  var noop = function () {};
+  var adLibStub = { runPop: noop, runBanner: noop, runInPagePush: noop, runAutoTag: noop, runInterstitial: noop, init: noop };
+  try { window.aclib = window.aclib || adLibStub; } catch (e) {}
+  try { window.adsbygoogle = window.adsbygoogle || []; } catch (e) {}
+  try { window._Hasync = window._Hasync || { push: noop }; } catch (e) {}
+  try { window.Histats = window.Histats || { start: noop, fasi: noop, track_hits: noop }; } catch (e) {}
+  try { window.dataLayer = window.dataLayer || []; } catch (e) {}
+  try { window.gtag = window.gtag || noop; } catch (e) {}
 
   try {
     Object.defineProperty(window, 'outerWidth',  { get: function () { return window.innerWidth;  } });
@@ -238,6 +331,7 @@ export default {
       return new Response(`host not allowed: ${targetHost}`, { status: 403 });
     }
 
+
     const targetPath = '/' + segments.slice(1).join('/');
     const targetUrl = `https://${targetHost}${targetPath}${url.search}`;
 
@@ -250,8 +344,23 @@ export default {
         'Referer': deriveUpstreamReferer(req, url, targetHost),
         ...(req.headers.get('Cookie') ? { Cookie: req.headers.get('Cookie')! } : {}),
       },
-      redirect: 'follow',
+      redirect: 'manual',
     });
+
+    if (upstream.status >= 300 && upstream.status < 400) {
+      const loc = upstream.headers.get('location');
+      if (loc) {
+        let absolute: string;
+        try { absolute = new URL(loc, targetUrl).href; } catch { absolute = loc; }
+        return new Response(null, {
+          status: upstream.status,
+          headers: {
+            'location': absolute,
+            'access-control-allow-origin': '*',
+          },
+        });
+      }
+    }
 
     const headers = new Headers(upstream.headers);
     headers.delete('content-security-policy');
@@ -260,6 +369,14 @@ export default {
     headers.delete('content-encoding');
     headers.delete('content-length');
     headers.set('access-control-allow-origin', '*');
+
+    const setCookies = (upstream.headers as any).getSetCookie ? (upstream.headers as any).getSetCookie() as string[] : [];
+    if (setCookies.length > 0) {
+      headers.delete('set-cookie');
+      for (const sc of setCookies) {
+        headers.append('set-cookie', sc.replace(/;\s*Domain=[^;]+/i, ''));
+      }
+    }
 
     const ct = (upstream.headers.get('content-type') ?? '').toLowerCase();
     const proxyOrigin = url.origin;
@@ -294,6 +411,10 @@ export default {
       .on('script', {
         element(el) {
           inlineBuf = '';
+          const type = el.getAttribute('type');
+          if (type && ROCKET_LOADER_TYPE.test(type)) {
+            el.setAttribute('type', 'text/javascript');
+          }
           const src = el.getAttribute('src');
           if (!src) return;
           if (isBlockedUrl(src, `https://${targetHost}/`)) {
@@ -306,7 +427,7 @@ export default {
         text(chunk) {
           inlineBuf += chunk.text;
           if (chunk.lastInTextNode) {
-            chunk.replace(stripDebugger(inlineBuf), { html: false });
+            chunk.replace(stripDebugger(inlineBuf), { html: true });
             inlineBuf = '';
           } else {
             chunk.remove();
@@ -349,6 +470,7 @@ function stripDebugger(src: string): string {
 }
 
 function deriveUpstreamReferer(req: Request, proxyUrl: URL, targetHost: string): string {
+  if (REFERER_OVERRIDES[targetHost]) return REFERER_OVERRIDES[targetHost];
   const incoming = req.headers.get('Referer');
   if (incoming) {
     try {

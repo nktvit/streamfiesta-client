@@ -2,7 +2,7 @@ import {Component, inject, input, output, OnChanges, SimpleChanges} from '@angul
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
 
 const PROXY_ORIGIN = 'https://media.fiesta.show';
-const PROXIED_HOSTS = new Set(['vidsrc.me', 'vidsrc.xyz']);
+const PROXIED_HOSTS = new Set(['vidsrc.me']);
 
 interface PlayerSource {
   name: string;
@@ -38,7 +38,7 @@ export class MoviePlayerComponent implements OnChanges {
     {
       name: 'Server 2',
       buildUrl: (type, id, s, e) => {
-        let url = `https://vidsrc.xyz/embed/${type}/${id}`;
+        let url = `https://vsembed.ru/embed/${type}/${id}`;
         if (type === 'tv' && s && e) url += `/${s}-${e}`;
         return url;
       }
@@ -74,7 +74,9 @@ export class MoviePlayerComponent implements OnChanges {
     const url = this.players[this.activePlayer].buildUrl(
       type, this.imdbId(), this.season(), this.episode()
     );
-    return this.sanitizer.bypassSecurityTrustResourceUrl(this.toProxy(url));
+    const isSafari = /^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(navigator.userAgent);
+    const finalUrl = isSafari ? url : this.toProxy(url);
+    return this.sanitizer.bypassSecurityTrustResourceUrl(finalUrl);
   }
 
   private toProxy(url: string): string {

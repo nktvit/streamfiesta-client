@@ -47,6 +47,7 @@ export class SearchBoxComponent implements OnDestroy {
   private logger = inject(LoggerService);
 
   performSearch(prompt: string) {
+    prompt = prompt.trim();
     if (prompt !== "" && prompt !== this.lastSearchTerm) {
       this.isLoading = true;
       this.lastSearchTerm = prompt;
@@ -104,6 +105,7 @@ export class SearchBoxComponent implements OnDestroy {
   }
 
   async fetchSuggestions(term: string, page: number = 1) {
+    term = term.trim();
     if (term.length < 2) return;
 
     if (page === 1) {
