@@ -247,7 +247,8 @@ export default {
         'User-Agent': req.headers.get('User-Agent') ?? 'Mozilla/5.0',
         'Accept': req.headers.get('Accept') ?? '*/*',
         'Accept-Language': req.headers.get('Accept-Language') ?? 'en-US',
-        'Referer': `https://${targetHost}/`,
+        'Referer': deriveUpstreamReferer(req, url, targetHost),
+        ...(req.headers.get('Cookie') ? { Cookie: req.headers.get('Cookie')! } : {}),
       },
       redirect: 'follow',
     });
@@ -282,6 +283,7 @@ export default {
       return new Response(upstream.body, { status: upstream.status, headers });
     }
 
+    let inlineBuf = '';
     const rewriter = new HTMLRewriter()
       .on('head', {
         element(el) {
@@ -291,6 +293,7 @@ export default {
       })
       .on('script', {
         element(el) {
+          inlineBuf = '';
           const src = el.getAttribute('src');
           if (!src) return;
           if (isBlockedUrl(src, `https://${targetHost}/`)) {
@@ -301,8 +304,13 @@ export default {
           if (proxied) el.setAttribute('src', proxied);
         },
         text(chunk) {
-          if (!chunk.text) return;
-          chunk.replace(stripDebugger(chunk.text), { html: false });
+          inlineBuf += chunk.text;
+          if (chunk.lastInTextNode) {
+            chunk.replace(stripDebugger(inlineBuf), { html: false });
+            inlineBuf = '';
+          } else {
+            chunk.remove();
+          }
         },
       })
       .on('iframe', {
@@ -338,4 +346,20 @@ export default {
 
 function stripDebugger(src: string): string {
   return src.replace(/(?<!\.)\bdebugger\b(?=\s*(?:;|\}|$))/g, '        ');
+}
+
+function deriveUpstreamReferer(req: Request, proxyUrl: URL, targetHost: string): string {
+  const incoming = req.headers.get('Referer');
+  if (incoming) {
+    try {
+      const ref = new URL(incoming);
+      if (ref.origin === proxyUrl.origin) {
+        const segs = ref.pathname.split('/').filter(Boolean);
+        if (segs.length > 0 && ALLOWED_HOSTS.has(segs[0].toLowerCase())) {
+          return `https://${segs[0]}/${segs.slice(1).join('/')}${ref.search}`;
+        }
+      }
+    } catch {}
+  }
+  return `https://${targetHost}/`;
 }
